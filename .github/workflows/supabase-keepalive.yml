@@ -1,0 +1,33 @@
+# Evita que el proyecto gratuito de Supabase se pause tras 7 días sin actividad.
+# Una vez al día hace una lectura pública (la misma que hace la web) contra la API.
+#
+# Para activarlo, en GitHub → Settings → Secrets and variables → Actions, crea:
+#   SUPABASE_URL       (p. ej. https://xxxx.supabase.co)
+#   SUPABASE_ANON_KEY  (la clave "anon public")
+# Si los secretos no existen, el job termina sin hacer nada.
+name: Supabase keep-alive
+
+on:
+  schedule:
+    - cron: '17 6 * * *' # todos los días a las 06:17 UTC
+  workflow_dispatch: {}
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Leer un proyecto publicado
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+        run: |
+          if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_ANON_KEY" ]; then
+            echo "Secretos no configurados; nada que hacer."
+            exit 0
+          fi
+          status=$(curl -s -o /dev/null -w "%{http_code}" \
+            -H "apikey: $SUPABASE_ANON_KEY" \
+            -H "Authorization: Bearer $SUPABASE_ANON_KEY" \
+            "$SUPABASE_URL/rest/v1/projects?select=id&limit=1")
+          echo "Supabase respondió $status"
+          test "$status" = "200"

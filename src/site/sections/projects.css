@@ -1,0 +1,384 @@
+/* ═════════════════════════════ Proyectos ═════════════════════════════
+   Misma familia visual que la app de la portada: lienzo punteado, nodos
+   grafito, trazo fino. El acento sólo marca la ruta automatizada. */
+
+/* ── Enlace del título que cubre toda la pieza ── */
+.pj-link { outline: none; }
+.pj-link::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 3;
+  border-radius: var(--radius-lg);
+}
+.pj-link:focus-visible::after {
+  outline: 2px solid var(--accent);
+  outline-offset: 6px;
+}
+
+/* Pista "Ver proyecto →": texto neutro, la flecha avanza al pasar. */
+.pj-cue {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-2);
+  white-space: nowrap;
+  transition: color 200ms var(--ease-out);
+}
+.pj-cue-arrow { transition: transform 200ms var(--ease-out); }
+
+@media (hover: hover) and (pointer: fine) {
+  .group:hover .pj-cue { color: var(--text); }
+  .group:hover .pj-cue-arrow { transform: translateX(3px); }
+  .pj-row:hover .sch { border-color: var(--line-strong); }
+  .pj-irow:hover { background: var(--bg-raised); }
+  .pj-irow:hover .pj-irow-arrow { color: var(--text); transform: translateX(2px); }
+}
+
+/* ── Filas destacadas ── */
+.pj-row { border-top: 1px solid var(--line); }
+
+/* ── Métricas como especificación ──
+   Cifra en mono y la etiqueta que continúa la frase. Tamaño contenido:
+   es un dato del proyecto, no un titular. */
+.pj-spec {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+  column-gap: 24px;
+  border-top: 1px solid var(--line);
+}
+.pj-spec > li {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 14px 0 2px;
+}
+.pj-spec-value {
+  font-family: var(--font-mono);
+  font-size: 17px;
+  line-height: 1.3;
+  color: var(--text);
+}
+.pj-spec-label {
+  font-size: 14px;
+  line-height: 1.4;
+  color: var(--text-2);
+}
+.pj-spec-lg { grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr)); column-gap: 32px; border-bottom: 1px solid var(--line); }
+.pj-spec-lg > li { gap: 8px; padding: 22px 0 24px; }
+.pj-spec-lg .pj-spec-value { font-size: clamp(1.2rem, 1.05rem + 0.5vw, 1.5rem); letter-spacing: -0.01em; }
+.pj-spec-lg .pj-spec-label { font-size: 15px; }
+
+/* ═════════════════════════════ Esquema de flujo ═════════════════════════════ */
+.sch {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  min-height: 320px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background-color: #0c0c0e;
+  background-image: radial-gradient(circle at 1px 1px, #1d1d21 1px, transparent 0);
+  background-size: 24px 24px;
+  background-position: 12px 12px;
+  overflow: hidden;
+  transition: border-color 200ms var(--ease-out);
+}
+
+.sch-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  min-height: 44px;
+  padding: 0 18px;
+  border-bottom: 1px solid #1f1f23;
+  background: #0e0e10;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-2);
+}
+
+.sch-body {
+  position: relative;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  padding: 28px 28px 32px;
+}
+
+.sch-canvas {
+  position: relative;
+  width: 100%;
+  display: grid;
+  column-gap: 36px;
+  row-gap: 20px;
+  align-items: center;
+}
+.sch-vertical .sch-canvas { column-gap: 8px; row-gap: 34px; }
+.sch-vertical .sch-body { padding: 22px 12px; }
+
+.sch-page { min-height: 360px; }
+.sch-page .sch-body { padding: 36px 44px 40px; }
+.sch-page .sch-canvas { column-gap: 64px; row-gap: 26px; }
+.sch-page.sch-vertical .sch-body { padding: 26px 12px; }
+.sch-page.sch-vertical .sch-canvas { column-gap: 8px; row-gap: 36px; }
+
+.sch-svg {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  overflow: visible;
+  pointer-events: none;
+}
+
+.sch-stage {
+  align-self: end;
+  padding-bottom: 4px;
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1;
+  color: var(--text-3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.sch-node {
+  position: relative;
+  z-index: 1;
+  min-width: 0;
+  min-height: 52px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 3px;
+  padding: 8px 12px;
+  /* Trazo, no tarjeta: borde fino sobre el lienzo, sin sombra ni relleno claro. */
+  border: 1px solid #2a2a2f;
+  border-radius: 8px;
+  background: #0e0e10;
+}
+.sch-node-label {
+  font-size: 14px;
+  font-weight: 600;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  color: var(--text);
+  overflow-wrap: break-word;
+  hyphens: auto;
+}
+.sch-node-sub {
+  font-size: 12.5px;
+  line-height: 1.3;
+  color: var(--text-3);
+  overflow-wrap: break-word;
+  hyphens: auto;
+}
+.sch-vertical .sch-node { padding: 8px 8px 8px 9px; }
+.sch-vertical .sch-node-label { font-size: 13px; }
+/* En página, el nodo no se estira a toda la columna: las aristas respiran. */
+.sch-page:not(.sch-vertical) .sch-node { justify-self: start; width: 100%; max-width: 13.5rem; }
+
+.sch-edge { fill: none; stroke: #303036; stroke-width: 1.5; }
+.sch-edge-alt { stroke: #45454c; stroke-dasharray: 4 4; }
+.sch-trail {
+  fill: none;
+  stroke: var(--accent-line);
+  stroke-width: 2;
+  /* pathLength=1: el trazo completo es 1; GSAP anima el offset de 1 a 0. */
+  stroke-dasharray: 1;
+  stroke-dashoffset: 0;
+}
+
+.sch-legend {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 16px;
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--text-3);
+}
+.sch-legend li { display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; }
+.sch-swatch-main { stroke: var(--accent-line); stroke-width: 2; }
+.sch-swatch-alt { stroke: #5a5a61; stroke-width: 1.5; stroke-dasharray: 3 3; }
+.sch-foot { padding: 0 14px 16px; }
+
+/* ── Stack por capas ── */
+.pj-stack-panel { min-height: 0; background-image: none; }
+.pj-layers { display: grid; }
+.pj-layer {
+  display: grid;
+  grid-template-columns: minmax(7rem, 10rem) minmax(0, 1fr);
+  gap: 16px;
+  align-items: center;
+  padding: 14px 0;
+  border-top: 1px solid #1f1f23;
+}
+.pj-layer:first-child { border-top: 0; }
+.pj-layer-name { font-size: 13px; color: var(--text-3); }
+@media (max-width: 479.98px) {
+  .pj-layer { grid-template-columns: 1fr; gap: 8px; }
+}
+
+/* ═════════════════════════════ Ventana con captura ═════════════════════════════ */
+.pj-stage { position: relative; }
+
+/* La ventana se separa del fondo por elevación (sombra desplazada y
+   difusa), sin filete alrededor: una sola forma de profundidad. */
+.pj-frame {
+  position: relative;
+  margin: 0;
+  overflow: hidden;
+  border-radius: var(--radius-lg);
+  background: var(--bg-raised);
+  box-shadow: var(--shadow-window);
+  transform-origin: 50% 100%;
+}
+.pj-stage > .pj-frame { will-change: transform; }
+
+.pj-frame-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 36px;
+  padding: 0 14px;
+  border-bottom: 1px solid var(--line);
+  background: var(--surface);
+  /* Nombre de la ventana en sans, como la barra de la app del portátil y la
+     del formulario de contacto: es un título, no un dato. */
+  font-size: 13px;
+  font-weight: 500;
+  letter-spacing: -0.005em;
+  color: var(--text-2);
+}
+
+.pj-frame-view {
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 2000 / 997;
+  background: var(--surface);
+}
+/* Recorta el pie: el margen que recorre el paralaje interior. */
+.pj-frame-view-crop { aspect-ratio: 2000 / 900; }
+.pj-frame-view img {
+  display: block;
+  width: 100%;
+  height: auto;
+  min-height: 100%;
+  aspect-ratio: auto 2000 / 997;
+  object-fit: cover;
+  object-position: top;
+  user-select: none;
+}
+
+/* ═════════════════════════════ Tabla índice ═════════════════════════════ */
+.pj-irow {
+  border-bottom: 1px solid var(--line);
+  transition: background-color 150ms ease;
+}
+.pj-irow > div { padding-inline: 4px; }
+@media (min-width: 768px) {
+  .pj-irow > div { padding-inline: 12px; margin-inline: -12px; }
+}
+.pj-irow-arrow { transition: transform 200ms var(--ease-out), color 200ms var(--ease-out); }
+.pj-irow .pj-link::after { border-radius: 0; }
+
+/* ═════════════════════════════ Filtro segmentado ═════════════════════════════ */
+.pj-tabs-scroll {
+  margin-inline: -20px;
+  padding: 2px 20px;
+  overflow-x: auto;
+  scrollbar-width: none;
+}
+.pj-tabs-scroll::-webkit-scrollbar { display: none; }
+/* Borde que sigue: se desvanece mientras quedan pestañas por ese lado
+   (FilterBar marca data-more-start / data-more-end). La pestaña que recibe
+   el foco o se elige se coloca fuera del desvanecido (scroll-padding). */
+.pj-tabs-scroll { scroll-padding-inline: 56px; }
+.pj-tabs-scroll[data-more-end] {
+  -webkit-mask-image: linear-gradient(to right, #000 calc(100% - 72px), transparent calc(100% - 6px));
+  mask-image: linear-gradient(to right, #000 calc(100% - 72px), transparent calc(100% - 6px));
+}
+.pj-tabs-scroll[data-more-start] {
+  -webkit-mask-image: linear-gradient(to right, transparent 6px, #000 72px);
+  mask-image: linear-gradient(to right, transparent 6px, #000 72px);
+}
+.pj-tabs-scroll[data-more-start][data-more-end] {
+  -webkit-mask-image: linear-gradient(to right, transparent 6px, #000 72px, #000 calc(100% - 72px), transparent calc(100% - 6px));
+  mask-image: linear-gradient(to right, transparent 6px, #000 72px, #000 calc(100% - 72px), transparent calc(100% - 6px));
+}
+/* Hasta lg el filtro se desplaza dentro de su fila: entre 640 y 1023 px no
+   cabe entero y empujaba la página hacia los lados. */
+@media (min-width: 640px) {
+  .pj-tabs-scroll { margin-inline: -32px; padding-inline: 32px; }
+}
+@media (min-width: 1024px) {
+  .pj-tabs-scroll { margin-inline: 0; padding-inline: 0; overflow: visible; }
+  .pj-tabs-scroll[data-more-start],
+  .pj-tabs-scroll[data-more-end] { -webkit-mask-image: none; mask-image: none; }
+}
+
+.pj-tabs {
+  position: relative;
+  display: inline-flex;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--bg-raised);
+}
+.pj-tab {
+  position: relative;
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 34px;
+  padding: 0 12px;
+  border-radius: 7px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-2);
+  white-space: nowrap;
+  transition: color 150ms ease, transform 160ms var(--ease-out);
+}
+.pj-tab:hover { color: var(--text); }
+.pj-tab:active { transform: scale(0.97); }
+.pj-tab[aria-pressed='true'] { color: var(--text); }
+.pj-tab:focus-visible { outline-offset: 1px; border-radius: 7px; }
+.pj-tab-n {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-3);
+  font-variant-numeric: tabular-nums;
+}
+.pj-tab-pill {
+  position: absolute;
+  top: 3px;
+  bottom: 3px;
+  left: 0;
+  right: 0;
+  z-index: 0;
+  background: var(--surface-2);
+  /* Filete superior claro: la píldora es una superficie elevada, no un halo. */
+  background-image: linear-gradient(rgb(255 255 255 / 0.06), rgb(255 255 255 / 0.06));
+  background-size: 100% 1px;
+  background-repeat: no-repeat;
+}
+.pj-tab-pill-anim { transition: clip-path 260ms var(--ease-out); }
+
+/* ═════════════════════════════ Transición índice → detalle ═════════════════════════════ */
+::view-transition-group(pj-visual) {
+  animation-duration: 560ms;
+  animation-timing-function: cubic-bezier(0.77, 0, 0.175, 1);
+}
+::view-transition-old(root),
+::view-transition-new(root) { animation-duration: 280ms; }
+
+
+/* La cifra de la pestaña activa sube un tono: sobre la píldora, text-3 no llega a 4.5:1. */
+.pj-tab[aria-pressed='true'] .pj-tab-n { color: var(--text-2); }

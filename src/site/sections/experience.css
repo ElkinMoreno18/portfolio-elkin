@@ -1,0 +1,168 @@
+/* ═════════════════════════════ Experiencia: línea de tiempo ═════════════════════════════
+   Geometría compartida por el raíl, los nodos y la rejilla de cada puesto.
+   Móvil: raíl a la izquierda. Escritorio: fecha | raíl | contenido. */
+.exp-timeline {
+  --rail-x: 5px;
+  --node-y: 10px;
+  --node: 11px;
+  position: relative;
+}
+
+@media (min-width: 768px) {
+  .exp-timeline {
+    --date-w: 10.5rem;
+    --gap: 3.5rem;
+    --rail-x: calc(var(--date-w) + var(--gap) / 2);
+    --node-y: 13px;
+  }
+}
+@media (min-width: 1024px) {
+  .exp-timeline { --date-w: 13rem; --gap: 4.5rem; }
+}
+
+/* Raíl neutro; el relleno (también neutro, un tono más claro) lo escala
+   GSAP con el scroll. El acento no se usa aquí: significa "actual", y sólo
+   el puesto actual lo lleva. */
+.exp-track {
+  position: absolute;
+  left: var(--rail-x);
+  top: var(--node-y);
+  bottom: 0;
+  width: 1px;
+  margin-left: -0.5px;
+  background: var(--line-strong);
+  pointer-events: none;
+}
+.exp-fill {
+  position: absolute;
+  inset: 0;
+  display: none;
+  background: var(--text-3);
+  transform-origin: 50% 0;
+  will-change: transform;
+}
+[data-armed] .exp-fill { display: block; }
+
+.exp-list { position: relative; }
+
+.exp-job {
+  position: relative;
+  padding-left: 2rem;
+  padding-bottom: 3.5rem;
+}
+.exp-job:last-child { padding-bottom: 0; }
+
+@media (min-width: 768px) {
+  .exp-job {
+    display: grid;
+    grid-template-columns: var(--date-w) minmax(0, 1fr);
+    column-gap: var(--gap);
+    padding-left: 0;
+    padding-bottom: 5.5rem;
+  }
+}
+
+/* Nodo: anillo neutro. El puesto actual lleva el acento (núcleo + anillo
+   trazado, no un halo). Con el raíl activo, los nodos aún no leídos bajan
+   a filete y cada uno sube a gris cuando la línea de lectura llega a él. */
+.exp-node {
+  position: absolute;
+  z-index: 1;
+  left: var(--rail-x);
+  top: var(--node-y);
+  width: var(--node);
+  height: var(--node);
+  margin: calc(var(--node) / -2) 0 0 calc(var(--node) / -2);
+  border-radius: 50%;
+  border: 1.5px solid var(--text-3);
+  background: var(--bg);
+  transition: border-color 220ms var(--ease-out), background-color 220ms var(--ease-out);
+}
+[data-armed] .exp-node { border-color: var(--line-strong); }
+[data-armed] .exp-node[data-reached] { border-color: var(--text-3); }
+
+.exp-job[data-current] .exp-node {
+  border-color: var(--accent);
+  background: var(--bg);
+}
+.exp-job[data-current] .exp-node::after {
+  content: '';
+  position: absolute;
+  inset: 2px;
+  border-radius: 50%;
+  background: var(--accent);
+}
+
+/* Fecha: en línea en móvil, columna fija (sticky) en escritorio. */
+.exp-when { margin-bottom: 0.625rem; }
+.exp-when-inner {
+  display: flex;
+  flex-wrap: wrap;
+  column-gap: 0.875rem;
+}
+@media (min-width: 768px) {
+  .exp-when { margin-bottom: 0; }
+  .exp-when-inner {
+    display: block;
+    position: sticky;
+    top: 92px;
+    padding-top: 3px;
+  }
+}
+
+/* Logros: marcador dibujado (una raya fina), nunca un glifo. */
+.exp-ach {
+  font-size: 16px;
+  line-height: 1.6;
+  color: var(--text-2);
+}
+.exp-ach > li {
+  position: relative;
+  padding-left: 1.25rem;
+}
+.exp-ach > li + li { margin-top: 0.5rem; }
+.exp-ach > li::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0.8em;
+  width: 7px;
+  height: 1px;
+  background: var(--text-3);
+}
+
+/* Logros plegables: la fila crece de 0 a su altura real (grid 0fr → 1fr). */
+.exp-ach > li.exp-more {
+  display: grid;
+  grid-template-rows: 0fr;
+  margin-top: 0;
+  opacity: 0;
+  transition: grid-template-rows 260ms var(--ease-out), opacity 200ms var(--ease-out);
+}
+.exp-ach > li.exp-more::before { top: calc(0.5rem + 0.8em); }
+.exp-ach > li.exp-more[data-open] {
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+.exp-more-inner { min-height: 0; overflow: hidden; }
+.exp-more-pad { padding-top: 0.5rem; }
+
+/* ═════════════════════════════ Formación e idiomas ═════════════════════════════ */
+.exp-row { position: relative; }
+.exp-rule {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 0;
+  height: 1px;
+  background: var(--line);
+}
+.exp-row:last-child::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 1px;
+  background: var(--line);
+}

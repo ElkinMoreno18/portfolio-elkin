@@ -1,0 +1,285 @@
+/* ═════════════════════════════ Contacto ═════════════════════════════
+   El cierre de la página. El formulario vive en una ventana del mismo
+   producto que la app del portátil de la portada (barra, líneas, chip de
+   estado), y ese chip cuenta en qué punto está el mensaje. */
+
+#contacto {
+  /* Error: el token del sistema (index.css). */
+  --ct-danger: var(--danger);
+  --ct-danger-line: var(--danger-line);
+  --ct-danger-soft: var(--danger-soft);
+}
+
+.ct-panel {
+  position: relative;
+  border: 1px solid var(--line);
+  border-radius: var(--radius-lg);
+  background: var(--bg-raised);
+  /* Borde definido y sin sombra ancha. */
+  box-shadow: 0 1px 0 0 rgb(255 255 255 / 0.04) inset;
+}
+
+.ct-bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  height: 52px;
+  padding: 0 20px;
+  border-bottom: 1px solid var(--line);
+}
+
+/* ── Chip de estado (mismo gesto que Manual → Automatizado) ── */
+.ct-chip {
+  display: inline-grid;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1;
+}
+.ct-chip > span {
+  grid-area: 1 / 1;
+  justify-self: end; /* cada estado con su ancho, no el del más largo */
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  padding: 5px 8px;
+  border-radius: 5px;
+  white-space: nowrap;
+  opacity: 0;
+  transform: translateY(5px);
+  transition: opacity 180ms var(--ease-out), transform 180ms var(--ease-out);
+}
+.ct-chip > span[data-on] {
+  opacity: 1;
+  transform: none;
+}
+.ct-chip-draft,
+.ct-chip-handoff { color: var(--text-2); border: 1px solid var(--line-strong); }
+.ct-chip-sending { color: var(--text); border: 1px solid var(--accent-line); }
+.ct-chip-sent { color: var(--on-accent); background: var(--accent); }
+.ct-chip-error { color: var(--ct-danger); border: 1px solid var(--ct-danger-line); }
+
+.ct-pulse {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--accent);
+  animation: ct-pulse 900ms ease-in-out infinite alternate;
+}
+@keyframes ct-pulse {
+  from { opacity: 1; }
+  to { opacity: 0.3; }
+}
+
+/* ── Campos ── */
+.ct-input {
+  display: block;
+  width: 100%;
+  height: 44px;
+  padding: 0 14px;
+  border: 1px solid var(--line-strong);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 16px; /* 16px: iOS no hace zoom al enfocar */
+  line-height: 1.4;
+  outline: 3px solid transparent;
+  outline-offset: 0;
+  transition:
+    border-color 150ms ease,
+    outline-color 150ms ease,
+    background-color 150ms ease;
+}
+textarea.ct-input {
+  height: auto;
+  min-height: 9.5rem;
+  padding: 11px 14px;
+  line-height: 1.6;
+  resize: vertical;
+}
+.ct-input::placeholder { color: var(--placeholder); }
+@media (hover: hover) and (pointer: fine) {
+  .ct-input:hover { border-color: color-mix(in oklab, var(--line-strong) 60%, var(--text-3)); }
+}
+.ct-input:focus,
+.ct-input:focus-visible {
+  border-color: var(--accent);
+  outline: 3px solid var(--accent-soft);
+  outline-offset: 0;
+  border-radius: var(--radius-sm);
+  background: var(--surface-2);
+}
+.ct-input[aria-invalid='true'] { border-color: var(--ct-danger-line); }
+.ct-input[aria-invalid='true']:focus {
+  border-color: var(--ct-danger);
+  outline-color: var(--ct-danger-soft);
+}
+/* Autorrelleno de Chrome/Safari: sin el fondo amarillo o azul del navegador. */
+.ct-input:-webkit-autofill,
+.ct-input:-webkit-autofill:hover,
+.ct-input:-webkit-autofill:focus {
+  -webkit-text-fill-color: var(--text);
+  caret-color: var(--accent);
+  transition: background-color 600000s 0s, color 600000s 0s;
+}
+
+.ct-err { color: var(--ct-danger); }
+
+/* Trampa para bots: fuera de la vista y del foco. */
+.ct-hp {
+  position: absolute;
+  left: -10000px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+/* ── Botón copiar: icono y texto se cruzan sin cambiar de ancho ── */
+.ct-swap-stack { display: inline-grid; }
+.ct-swap-stack > * {
+  grid-area: 1 / 1;
+  transition: opacity 150ms ease, transform 150ms var(--ease-out), filter 150ms ease;
+}
+.ct-swap-stack > [data-off] {
+  opacity: 0;
+  transform: scale(0.9);
+  filter: blur(2px);
+}
+.ct-swap-stack.is-text > [data-off] { transform: translateY(4px); }
+
+/* ── Cambios de estado del formulario: entran con fundido corto ── */
+.ct-enter {
+  transition: opacity 240ms var(--ease-out), transform 240ms var(--ease-out), filter 240ms ease;
+}
+@starting-style {
+  .ct-enter {
+    opacity: 0;
+    transform: translateY(6px);
+    filter: blur(2px);
+  }
+}
+
+.ct-spinner { animation: ct-spin 700ms linear infinite; }
+@keyframes ct-spin { to { transform: rotate(360deg); } }
+
+/* ── Filas de contacto directo ── */
+@media (hover: hover) and (pointer: fine) {
+  .ct-row:hover .ct-row-value { color: var(--text); }
+  .ct-row:hover .ct-row-go { color: var(--text); transform: translate(2px, -2px); }
+  .ct-row[data-kind='cv']:hover .ct-row-go { transform: translateY(2px); }
+}
+.ct-row-value,
+.ct-row-go {
+  transition: color 150ms ease, transform 200ms var(--ease-out);
+}
+
+/* ═════════════════════════════ 404 ═════════════════════════════
+   Una petición que llega al router y se queda sin ruta: el mismo
+   lenguaje de nodos que la portada, en pequeño. */
+.nf-flow {
+  display: flex;
+  align-items: center;
+  width: 100%;
+  max-width: 34rem;
+}
+
+.nf-node {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+  flex-shrink: 1;
+  padding: 9px 12px;
+  border-radius: 8px;
+  border: 1px solid var(--line-strong);
+  background: var(--surface);
+}
+/* El router no se encoge: su "404" es lo que cuenta. La petición, sí. */
+.nf-node[data-nf-router] { flex-shrink: 0; }
+.nf-node-label { font-size: 14px; font-weight: 600; letter-spacing: -0.01em; color: var(--text); white-space: nowrap; }
+.nf-node-sub {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  color: var(--text-3);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 12rem;
+}
+
+.nf-edge {
+  position: relative;
+  flex: 1 1 auto;
+  min-width: 28px;
+  height: 12px;
+}
+.nf-edge::before,
+.nf-trail {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: 50%;
+  height: 1.5px;
+  margin-top: -0.75px;
+  border-radius: 1px;
+}
+.nf-edge::before { background: var(--line-strong); }
+.nf-trail {
+  background: var(--accent-line);
+  transform-origin: 0 50%;
+}
+
+.nf-packet {
+  position: absolute;
+  left: -5px;
+  top: 50%;
+  width: 10px;
+  height: 10px;
+  margin-top: -5px;
+  border-radius: 50%;
+  background: var(--accent);
+  opacity: 0;
+}
+/* Estela del paquete: el mismo halo que en el flujo de la portada. */
+.nf-packet::before {
+  content: '';
+  position: absolute;
+  inset: -4px;
+  border-radius: 50%;
+  background: color-mix(in oklab, var(--accent) 22%, transparent);
+}
+
+/* Ruta rota: un tramo, un hueco y un puerto sin conectar. */
+.nf-broken {
+  position: relative;
+  display: flex;
+  align-items: center;
+  flex: 0 0 auto;
+  width: 52px;
+  height: 12px;
+}
+@media (min-width: 640px) { .nf-broken { width: 64px; } }
+.nf-stub {
+  width: 18px;
+  height: 1.5px;
+  border-radius: 1px;
+  background: var(--line-strong);
+}
+.nf-gap-stub {
+  width: 10px;
+  height: 1.5px;
+  margin-left: 10px;
+  border-radius: 1px;
+  background: var(--line-strong);
+  opacity: 0.6;
+}
+.nf-port {
+  width: 11px;
+  height: 11px;
+  margin-left: 4px;
+  border-radius: 50%;
+  border: 1.5px solid var(--text-3);
+  background: var(--bg);
+}

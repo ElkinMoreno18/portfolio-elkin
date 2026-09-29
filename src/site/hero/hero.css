@@ -1,0 +1,448 @@
+/* ═════════════════════════════ Portátil 3D ═════════════════════════════
+   Geometría en fracciones del ancho (--lap-w), para que la proyección sea
+   la misma a cualquier tamaño:
+   - La cámara está a 5 anchos de la pantalla (--persp). El canto frontal de
+     la base, a --lid-h hacia el espectador, se proyecta 1,15 veces más ancho
+     que la tapa (5 / (5 − 0,65)).
+   - Por eso el ancho sale del hueco disponible entre márgenes dividido por
+     1,18: el canto frontal nunca toca los bordes de la ventana.
+   - Y del alto de ventana, para que la tapa abierta quepa bajo la barra. */
+.hero-stage {
+  --gutter: 16px;
+  --lap-w: min(1080px, calc((100vw - 2 * var(--gutter)) / 1.18), calc((100svh - 190px) * 1.5));
+  --bz: calc(var(--lap-w) * 0.018);           /* marco negro de la pantalla */
+  --chin: calc(var(--lap-w) * 0.012);
+  --scr-w: calc(var(--lap-w) - 2 * var(--bz));
+  --lid-h: calc(var(--scr-w) * 0.625 + 2 * var(--bz) + var(--chin));
+  --persp: calc(var(--lap-w) * 5);
+  /* Cámara al final de la apertura: por encima de la tapa, lo justo para
+     leer el teclado en escorzo. GSAP la baja desde más arriba al abrir. */
+  --cam-y: calc(var(--lap-w) * -1.03);
+  --edge-h: calc(var(--lap-w) * 0.012);       /* grosor de la base */
+}
+@media (min-width: 900px) {
+  .hero-stage { --gutter: 48px; }
+}
+
+.lap-scene {
+  position: relative;
+  width: var(--lap-w);
+  margin-inline: auto;
+  perspective: var(--persp);
+  perspective-origin: 50% var(--cam-y);
+}
+
+.lap {
+  position: relative;
+  width: var(--lap-w);
+  height: var(--lid-h);
+  transform-style: preserve-3d;
+  transform-origin: 50% 100%;
+}
+
+.lap-lid {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+  transform-origin: 50% 100%;
+}
+
+.lap-face {
+  position: absolute;
+  inset: 0;
+  border-radius: calc(var(--lap-w) * 0.022) calc(var(--lap-w) * 0.022) 4px 4px;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+/* Cara interior: marco + pantalla. El filete superior es el borde del
+   aluminio que asoma alrededor del cristal. */
+.lap-front {
+  background: #050506;
+  box-shadow: 0 0 0 1px #2a2a2e inset, 0 1px 0 0 #3a3a3f inset;
+}
+
+.lap-screen {
+  position: absolute;
+  left: var(--bz);
+  top: var(--bz);
+  width: var(--scr-w);
+  height: calc(var(--scr-w) * 0.625);
+  border-radius: calc(var(--lap-w) * 0.008);
+  overflow: hidden;
+  background: #0c0c0e;
+}
+
+.lap-app {
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform: scale(var(--k, 0.5));
+  transform-origin: 0 0;
+}
+
+.lap-off {
+  position: absolute;
+  inset: 0;
+  background: #050506;
+  opacity: 0;
+}
+
+/* Reflejo muy leve en diagonal: es vidrio, no un efecto. */
+.lap-glare {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(115deg, rgb(255 255 255 / 0.045) 0%, rgb(255 255 255 / 0) 38%);
+}
+
+.lap-cam {
+  position: absolute;
+  left: 50%;
+  top: calc(var(--bz) * 0.5);
+  width: 5px;
+  height: 5px;
+  margin: -2.5px 0 0 -2.5px;
+  border-radius: 50%;
+  background: #17171a;
+}
+
+/* Cara exterior de la tapa: aluminio grafito con la marca centrada. */
+.lap-back {
+  transform: rotateY(180deg);
+  background: linear-gradient(180deg, #26262a 0%, #1c1c1f 55%, #17171a 100%);
+  box-shadow: 0 0 0 1px #2e2e33 inset;
+  display: grid;
+  place-items: center;
+  overflow: hidden;
+}
+.lap-logo {
+  width: calc(var(--lap-w) * 0.085);
+  height: calc(var(--lap-w) * 0.085);
+  opacity: 0.8;
+}
+/* Brillo del aluminio con la tapa cerrada, iluminada desde arriba. */
+.lap-sheen {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0;
+  background: linear-gradient(172deg, rgb(255 255 255 / 0.07) 0%, rgb(255 255 255 / 0.02) 45%, rgb(255 255 255 / 0) 70%);
+}
+
+/* Canto superior de la tapa, perpendicular a ella. */
+/* Arranca donde termina el redondeo de las esquinas, o se ve suelto. */
+.lap-rim {
+  position: absolute;
+  left: calc(var(--lap-w) * 0.022);
+  right: calc(var(--lap-w) * 0.022);
+  top: 0;
+  height: calc(var(--lap-w) * 0.006);
+  transform-origin: 50% 0;
+  transform: rotateX(-90deg);
+  background: linear-gradient(180deg, #2c2c30, #1c1c1f);
+}
+
+/* Base: tumbada en horizontal desde la bisagra hacia el espectador, con el
+   mismo fondo que la tapa (se cierran una sobre otra). */
+.lap-base {
+  position: absolute;
+  left: 0;
+  top: calc(100% + 2px);
+  width: var(--lap-w);
+  height: var(--lid-h);
+  transform-style: preserve-3d;
+  transform-origin: 50% 0;
+  transform: rotateX(90deg);
+  border-radius: 4px 4px calc(var(--lap-w) * 0.022) calc(var(--lap-w) * 0.022);
+  background: linear-gradient(180deg, #1c1c1f 0%, #212124 60%, #242427 100%);
+  box-shadow: 0 0 0 1px #2c2c30 inset, 0 -1px 0 0 #3a3a3f inset;
+}
+.lap-kbd,
+.lap-shade,
+.lap-spill {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  border-radius: inherit;
+  pointer-events: none;
+}
+.lap-kbd { user-select: none; }
+/* Sombra de la tapa sobre la base: cerrada, la base queda a oscuras. */
+.lap-shade {
+  opacity: 0;
+  background: linear-gradient(180deg, rgb(0 0 0 / 0.72) 0%, rgb(0 0 0 / 0.45) 55%, rgb(0 0 0 / 0.2) 100%);
+}
+/* Luz de la pantalla sobre el teclado: nace en la bisagra y cae hacia el
+   trackpad. Blanca y fría, como la de un panel; nunca de color. */
+.lap-spill {
+  background: linear-gradient(180deg, rgb(214 220 235 / 0.11) 0%, rgb(214 220 235 / 0.05) 24%, rgb(214 220 235 / 0) 58%);
+}
+
+/* Canto frontal (grosor de la base) con la muesca para abrir la tapa. */
+.lap-edge {
+  position: absolute;
+  left: calc(var(--lap-w) * 0.004);
+  right: calc(var(--lap-w) * 0.004);
+  bottom: 0;
+  height: var(--edge-h);
+  transform-origin: 50% 100%;
+  transform: rotateX(-90deg);
+  background: linear-gradient(180deg, #333337 0%, #1d1d20 45%, #111113 100%);
+  border-radius: 0 0 calc(var(--lap-w) * 0.01) calc(var(--lap-w) * 0.01);
+}
+.lap-notch {
+  position: absolute;
+  left: 50%;
+  top: 0;
+  width: calc(var(--lap-w) * 0.1);
+  height: 55%;
+  transform: translateX(-50%);
+  border-radius: 0 0 calc(var(--lap-w) * 0.012) calc(var(--lap-w) * 0.012);
+  background: linear-gradient(180deg, #0d0d0f, #19191c);
+}
+
+/* Móvil: el portátil queda anclado y las tarjetas salen de debajo;
+   un fundido corto evita el corte seco contra el fondo. */
+@media (max-width: 899.98px) {
+  .stage-lap::after {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: 100%;
+    height: 28px;
+    background: linear-gradient(var(--bg), transparent);
+    pointer-events: none;
+  }
+}
+
+/* Escritorio: la base se proyecta por debajo del escenario fijado (84 px de
+   margen + tapa + ~0,265 anchos de base en escorzo). Se reserva justo lo que
+   sobresale, más un respiro, para que no pise la sección siguiente. */
+@media (min-width: 900px) {
+  .hero-stage { margin-bottom: max(32px, calc(84px + var(--lid-h) + var(--lap-w) * 0.27 + 32px - 100svh)); }
+}
+
+/* Estado por defecto (movimiento reducido): abierto, con la pantalla
+   encendida y su luz sobre el teclado.
+   Con movimiento, la primera pintura ya es el punto de partida de la
+   secuencia: tapa cerrada, portátil lejos (se ve a 0,7: z = −5 · (1/0,7 − 1)
+   anchos), pantalla apagada y cámara alta. GSAP monta la secuencia después,
+   desde estos mismos valores (CLOSED y TABLET en Hero.tsx), así nada salta. */
+@media (prefers-reduced-motion: no-preference) {
+  .lap-scene { perspective-origin: 50% calc(var(--lap-w) * -1.35); }
+  .lap { transform: translateZ(calc(var(--lap-w) * -2.142857)); }
+  .lap-lid { transform: rotateX(-90deg); }
+  .lap-off,
+  .lap-shade,
+  .lap-sheen { opacity: 1; }
+  .lap-spill { opacity: 0; }
+}
+/* Tableta en vertical: entreabierto y más cerca (z = −5 · (1/0,9 − 1)). */
+@media (prefers-reduced-motion: no-preference) and (min-width: 700px) and (max-width: 899.98px) {
+  .lap-scene { perspective-origin: 50% calc(var(--lap-w) * -1.15); }
+  .lap { transform: translateZ(calc(var(--lap-w) * -0.555556)); }
+  .lap-lid { transform: rotateX(-40deg); }
+  .lap-shade { opacity: 0.4; }
+  .lap-sheen { opacity: 0.25; }
+}
+
+/* ═════════════════════════════ Entrada del texto ═════════════════════════════
+   Sólo transform: el texto es visible (y cuenta como pintado) desde el primer
+   fotograma; sube unos píxeles hasta su sitio con el ease-out del sitio.
+   Con movimiento reducido no hay desplazamiento. */
+@media (prefers-reduced-motion: no-preference) {
+  [data-rise] {
+    animation: hero-rise 0.8s var(--ease-out) backwards;
+  }
+  [data-rise="0"] { --rise: 18px; }
+  [data-rise="1"] { animation-delay: 70ms; }
+  [data-rise="2"] { animation-delay: 130ms; }
+  [data-rise="3"] { animation-delay: 190ms; }
+}
+@keyframes hero-rise {
+  from { transform: translateY(var(--rise, 12px)); }
+}
+
+/* ═════════════════════════════ App de la pantalla ═════════════════════════════ */
+.auto-app {
+  position: relative;
+  background: #0c0c0e;
+  color: var(--text);
+  font-family: var(--font-sans);
+  overflow: hidden;
+}
+
+.auto-bar {
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: 52px;
+  padding: 0 24px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid #1f1f23;
+  background: #0e0e10;
+  font-size: 14px;
+  font-weight: 500;
+}
+.auto-hint {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--text-2);
+}
+/* Sin secuencia fijada (móvil, movimiento reducido) no hay nada que indicar;
+   en el móvil, además, quedaría a unos 6 px. */
+.auto-app[data-done] .auto-hint { display: none; }
+@media (max-width: 899.98px) {
+  .auto-hint { display: none; }
+}
+.auto-demo {
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-3);
+  border: 1px solid #26262b;
+  border-radius: 5px;
+  padding: 4px 8px;
+}
+
+.auto-canvas {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+}
+
+.auto-col {
+  position: absolute;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-3);
+}
+
+.auto-edge {
+  fill: none;
+  stroke: #2a2a30;
+  stroke-width: 1.5;
+}
+.auto-trail {
+  fill: none;
+  stroke: var(--accent);
+  stroke-width: 2;
+  stroke-linecap: round;
+  /* pathLength=1: un guion del largo del trazo y un hueco mayor. Oculto por
+     defecto (offset > 1, así ni el remate redondeado asoma en el origen);
+     GSAP lleva el offset a 0 para dibujarlo. */
+  stroke-dasharray: 1 2;
+  stroke-dashoffset: 1.01;
+}
+.auto-app[data-done] .auto-trail { stroke-dashoffset: 0; stroke: var(--accent-line); }
+
+.auto-packet { opacity: 0; }
+.auto-packet-halo { fill: color-mix(in oklab, var(--accent) 25%, transparent); }
+.auto-packet-core { fill: var(--accent); }
+
+.auto-node {
+  position: absolute;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+  padding: 0 14px;
+  border-radius: 8px;
+  border: 1px solid #2a2a2f;
+  background: #141417;
+}
+.auto-node-label { font-size: 14px; font-weight: 600; letter-spacing: -0.01em; color: var(--text); }
+.auto-node-sub { font-size: 12px; line-height: 1.25; color: var(--text-3); }
+
+.auto-ledger {
+  position: absolute;
+  top: 52px;
+  bottom: 0;
+  border-left: 1px solid #1f1f23;
+  background: #0e0e10;
+  display: flex;
+  flex-direction: column;
+}
+.auto-row {
+  padding: 16px 28px 18px;
+  border-bottom: 1px solid #1f1f23;
+}
+.auto-task {
+  margin-top: 8px;
+  font-size: 15px;
+  line-height: 1.45;
+  color: var(--text-2);
+  text-decoration: line-through;
+  text-decoration-thickness: 1.5px;
+  text-decoration-color: transparent;
+}
+.auto-now {
+  margin-top: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 13px;
+}
+.auto-now-chip {
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-2);
+  border: 1px solid #26262b;
+  border-radius: 5px;
+  padding: 3px 7px;
+}
+
+.auto-status {
+  position: relative;
+  display: inline-grid;
+  font-family: var(--font-mono);
+  font-size: 12px;
+  line-height: 1;
+}
+.auto-status > span {
+  grid-area: 1 / 1;
+  border-radius: 5px;
+  padding: 5px 8px;
+  text-align: center;
+  white-space: nowrap;
+}
+.auto-status-manual { color: var(--text-2); border: 1px solid #2a2a2f; }
+.auto-status-auto { color: var(--on-accent); background: var(--accent); opacity: 0; }
+
+.auto-counter {
+  margin-top: auto;
+  padding: 18px 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-top: 1px solid #1f1f23;
+}
+
+/* Estado final (movimiento reducido, o render estático). */
+.auto-app[data-done] .auto-status-manual,
+.task-list[data-done] .auto-status-manual { opacity: 0; }
+.auto-app[data-done] .auto-status-auto,
+.task-list[data-done] .auto-status-auto { opacity: 1; }
+.auto-app[data-done] .auto-task,
+.task-list[data-done] .auto-task { color: var(--text-3); text-decoration-color: var(--text-3); }
+.auto-app[data-done] .auto-now-chip,
+.task-list[data-done] .auto-now-chip { color: var(--text); border-color: var(--accent-line); }
+
+/* ═════════════════════ Lista de tareas (móvil, y equivalente accesible) ═════════════════════ */
+.task-list {
+  display: grid;
+  gap: 10px;
+}
+.task-card {
+  border: 1px solid var(--line);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  padding: 14px 16px 16px;
+}

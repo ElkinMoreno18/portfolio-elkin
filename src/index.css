@@ -1,0 +1,219 @@
+@import "tailwindcss";
+
+/*
+ * Portafolio de Elkin Moreno — sistema visual "producto tech premium".
+ * Oscuro, sobrio, una sola tinta de acento que SIGNIFICA algo: vivo /
+ * automatizado. Todo lo demás son neutros. Sin cristal, sin brillos,
+ * sin degradados en texto.
+ */
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ── Fuentes, servidas desde el propio sitio (public/fonts) ──
+   Host Grotesk variable en peso (300–800) y Fragment Mono, ambas SIL OFL.
+   Sin el eje de anchura: el sitio no lo usa y pesaba el 60 % del archivo.
+   Sólo latín y latín extendido: el español y el inglés caben en el primero;
+   el segundo cubre nombres propios con otros diacríticos. */
+@font-face {
+  font-family: "Host Grotesk";
+  font-style: normal;
+  font-weight: 300 800;
+  font-display: swap;
+  src: url("/fonts/host-grotesk-latin.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Host Grotesk";
+  font-style: normal;
+  font-weight: 300 800;
+  font-display: swap;
+  src: url("/fonts/host-grotesk-latin-ext.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+@font-face {
+  font-family: "Fragment Mono";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/fragment-mono-latin.woff2") format("woff2");
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: "Fragment Mono";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/fragment-mono-latin-ext.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+:root {
+  color-scheme: dark;
+
+  /* ── Neutros (ligeramente cálidos, no la rampa zinc de Tailwind) ── */
+  --bg:          #0a0a0b;
+  --bg-raised:   #0f0f11;
+  --surface:     #141416;
+  --surface-2:   #1a1a1d;
+  --line:        #222226;
+  --line-strong: #2e2e33;
+  --text:        #f1f0ed;
+  --text-2:      #a6a6ac; /* 8.0:1 sobre --bg */
+  --text-3:      #83838a; /* 5.3:1 sobre --bg, 4.9:1 sobre --surface, 4.6:1 sobre --surface-2 */
+
+  /* ── Acento: vivo / automatizado. Nunca decoración. ── */
+  --accent:      #ff6b2c; /* 6.9:1 sobre --bg */
+  --accent-soft: color-mix(in oklab, var(--accent) 13%, transparent);
+  --accent-line: color-mix(in oklab, var(--accent) 45%, transparent);
+  --on-accent:   #140a05;
+
+  /* ── Error: rojo neutro, lejos del acento para no confundir "vivo" con
+        "fallo". 5.3:1 sobre --surface, 5.7:1 sobre --bg. ── */
+  --danger:      #f06464;
+  --danger-line: color-mix(in oklab, var(--danger) 55%, transparent);
+  --danger-soft: color-mix(in oklab, var(--danger) 16%, transparent);
+
+  /* Marcador de posición: un punto más claro que --text-3 sobre --surface. */
+  --placeholder: color-mix(in oklab, var(--text-3) 78%, var(--text-2));
+
+  /* ── Alias del sistema anterior: /admin sigue funcionando con la
+        paleta nueva mientras se rehace. ── */
+  --bg-elevated: var(--surface);
+  --ink:         var(--text);
+  --ink-soft:    #d8d7d3;
+  --muted:       var(--text-2);
+  --faint:       var(--text-3);
+  --violet:      var(--accent);
+  --cyan:        var(--accent);
+  --amber:       var(--accent);
+
+  /* ── Movimiento (estándares de Emil Kowalski) ── */
+  --ease-out:    cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+
+  /* ── Profundidad: desplazamiento + desenfoque, nunca halo de color ── */
+  --shadow-card: 0 1px 0 0 rgb(255 255 255 / 0.04) inset, 0 12px 32px -16px rgb(0 0 0 / 0.7);
+  --shadow-window: 0 1px 0 0 rgb(255 255 255 / 0.05) inset, 0 40px 80px -32px rgb(0 0 0 / 0.85), 0 16px 32px -24px rgb(0 0 0 / 0.6);
+  --shadow-lift: var(--shadow-card);
+}
+
+@theme inline {
+  --color-bg: var(--bg);
+  --color-bg-raised: var(--bg-raised);
+  --color-bg-elevated: var(--bg-elevated);
+  --color-surface: var(--surface);
+  --color-surface-2: var(--surface-2);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+  --color-text: var(--text);
+  --color-text-2: var(--text-2);
+  --color-text-3: var(--text-3);
+  --color-accent: var(--accent);
+  --color-on-accent: var(--on-accent);
+  --color-danger: var(--danger);
+  --color-placeholder: var(--placeholder);
+  /* alias heredados */
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-muted: var(--muted);
+  --color-faint: var(--faint);
+  --color-violet: var(--violet);
+  --color-cyan: var(--cyan);
+  --color-amber: var(--amber);
+
+  --font-sans: "Host Grotesk", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-display: "Host Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "Fragment Mono", ui-monospace, "SF Mono", Menlo, monospace;
+
+  --radius-sm: 6px;
+  --radius-md: 10px;
+  --radius-lg: 14px;
+
+  --shadow-card: var(--shadow-card);
+  --shadow-window: var(--shadow-window);
+  --shadow-lift: var(--shadow-lift);
+
+  --ease-out-expo: var(--ease-out);
+}
+
+@layer base {
+  * { border-color: var(--line); }
+
+  html {
+    background: var(--bg);
+    /* Arriba, la barra fija (60 px): un ancla o un foco no quedan debajo.
+       Abajo, un cuarto de pantalla: el foco del teclado lleva el elemento
+       por encima de las líneas de aparición (78 a 86 %). */
+    scroll-padding-block: 60px 25vh;
+    -webkit-text-size-adjust: 100%;
+    text-rendering: optimizeLegibility;
+    scrollbar-color: var(--line-strong) var(--bg);
+  }
+
+  body {
+    background: var(--bg);
+    color: var(--text);
+    font-family: var(--font-sans);
+    font-size: 1rem;
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    overflow-x: clip;
+    caret-color: var(--accent);
+  }
+
+  h1, h2, h3, h4 {
+    font-family: var(--font-display);
+    font-weight: 600;
+    letter-spacing: -0.03em;
+    line-height: 1.08;
+    text-wrap: balance;
+    color: var(--text);
+  }
+
+  p { text-wrap: pretty; }
+
+  a { text-underline-offset: 0.22em; text-decoration-thickness: 1px; }
+
+  ::selection { background: color-mix(in oklab, var(--accent) 35%, transparent); color: var(--text); }
+
+  :focus-visible {
+    outline: 2px solid var(--accent);
+    outline-offset: 3px;
+    border-radius: 4px;
+  }
+  /* Títulos y <main> que reciben el foco por script al navegar (tabindex=-1):
+     el lector los anuncia; no hace falta un anillo sobre un titular. */
+  :is(h1, h2, main)[tabindex="-1"]:focus { outline: none; }
+
+  ::-webkit-scrollbar { width: 10px; height: 10px; }
+  ::-webkit-scrollbar-track { background: var(--bg); }
+  ::-webkit-scrollbar-thumb { background: var(--line-strong); border-radius: 999px; border: 3px solid var(--bg); }
+  ::-webkit-scrollbar-thumb:hover { background: var(--text-3); }
+
+  input, textarea, select, button { font: inherit; color: inherit; }
+  input::placeholder, textarea::placeholder { color: var(--placeholder); }
+
+  /* Cifras de datos alineadas: fechas, métricas, contadores. */
+  .tnum { font-variant-numeric: tabular-nums; }
+}
+
+/* Movimiento reducido: se quitan desplazamientos; las transiciones de
+   opacidad cortas se conservan porque ayudan a entender el cambio. */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+  /* La regla de arriba no alcanza a los pseudo-elementos de View Transitions. */
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) { animation: none !important; }
+}
+
+@media print {
+  .no-print { display: none !important; }
+  body { background: #fff; color: #000; }
+}

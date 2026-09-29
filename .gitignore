@@ -1,0 +1,17 @@
+node_modules
+dist
+dist-ssr
+.env
+.env.local
+*.local
+.DS_Store
+.vercel
+*.tsbuildinfo
+
+# Evidencia de revisión de diseño (capturas pesadas, no se despliegan)
+.impeccable/review/
+.impeccable/build/
+
+# Herramientas de diseño instaladas localmente (se reinstalan con npx, ver README)
+.claude/
+.agents/

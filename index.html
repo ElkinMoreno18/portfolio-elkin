@@ -1,0 +1,47 @@
+<!doctype html>
+<html lang="es" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+
+    <title>Elkin Moreno · Full Stack Developer &amp; Automation Engineer</title>
+    <meta name="description" content="Elkin Moreno, Full Stack Developer y Automation Engineer en Madrid. Automatización de operaciones con n8n, Symfony, React e IA. Abierto a empleo y proyectos freelance." />
+    <meta name="author" content="Elkin Leonardo Moreno Mojica" />
+    <link rel="canonical" href="https://elkin-moreno.pages.dev/" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:title" content="Elkin Moreno · Full Stack Developer &amp; Automation Engineer" />
+    <meta property="og:description" content="Full Stack Developer y Automation Engineer en Madrid. n8n, Symfony, React e IA para equipos de operaciones. Abierto a empleo y freelance." />
+    <meta property="og:locale" content="es_ES" />
+    <meta property="og:locale:alternate" content="en_GB" />
+    <meta property="og:url" content="https://elkin-moreno.pages.dev/" />
+    <meta property="og:image" content="https://elkin-moreno.pages.dev/og.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Elkin Moreno, Full Stack Developer &amp; Automation Engineer, Madrid" />
+    <meta name="twitter:card" content="summary_large_image" />
+
+    <meta name="theme-color" content="#0a0a0b" />
+
+    <!-- Fuentes propias (public/fonts, @font-face en src/index.css): sin hoja
+         externa que bloquee la pintura ni IPs de visitantes enviadas a terceros.
+         Se pide ya la que usa la primera pantalla. La mono sólo aparece arriba
+         en el selector de idioma, que en el móvil vive dentro del menú. -->
+    <link rel="preload" as="font" type="font/woff2" href="/fonts/host-grotesk-latin.woff2" crossorigin />
+    <link rel="preload" as="font" type="font/woff2" href="/fonts/fragment-mono-latin.woff2" crossorigin media="(min-width: 640px)" />
+    <script>
+      // Idioma recordado antes de que React monte (evita un parpadeo ES↔EN).
+      (function () {
+        try {
+          var lang = localStorage.getItem('em-lang');
+          if (lang) document.documentElement.lang = lang;
+        } catch (_) {}
+      })();
+    </script>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

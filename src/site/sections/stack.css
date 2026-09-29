@@ -1,0 +1,54 @@
+/* ═════════════════════════════ Stack: tabla de capacidades ═════════════════════════════
+   Móvil: cada área apilada. Tableta: área | tecnologías (y "usado en"
+   debajo). Escritorio: área | tecnologías | usado en, con cabecera.
+   Aquí sólo vive la plantilla de columnas; el display lo decide cada
+   elemento con utilidades (md:grid, lg:grid) para no pisar "hidden". */
+
+@media (min-width: 768px) {
+  .stack-grid {
+    grid-template-columns: minmax(0, 15rem) minmax(0, 1fr);
+    column-gap: 2.5rem;
+    align-items: start;
+  }
+  /* El área ocupa las dos filas: "usado en" queda justo bajo las etiquetas. */
+  .stack-grid { grid-template-rows: auto 1fr; }
+  .stack-area { grid-row: span 2; }
+  .stack-used { grid-column: 2; }
+}
+@media (min-width: 1024px) {
+  .stack-grid {
+    grid-template-columns: minmax(0, 19rem) minmax(0, 1fr) minmax(0, 14rem);
+    column-gap: 3rem;
+  }
+  .stack-grid { grid-template-rows: none; }
+  .stack-area { grid-row: auto; }
+  .stack-used { grid-column: 3; grid-row: 1; }
+}
+
+/* Estados del cruce (sólo con ratón): la tecnología o la empresa señalada
+   sube a tinta plena, el resto baja a texto terciario. Colores, no opacidad,
+   para que nada quede por debajo del contraste mínimo. */
+.stack-tag,
+.stack-co {
+  transition: color 150ms ease, border-color 150ms ease, background-color 150ms ease;
+}
+.stack-dot { transition: opacity 150ms ease; }
+
+[data-hl] .stack-item[data-on] .stack-tag {
+  color: var(--text);
+  border-color: var(--text-3);
+  background-color: var(--surface-2);
+}
+[data-hl] .stack-item:not([data-on]) .stack-tag {
+  color: var(--text-3);
+  background-color: transparent;
+}
+[data-hl] .stack-item:not([data-on]) .stack-dot,
+[data-hl] .stack-co:not([data-on]) .stack-dot { opacity: 0.35; }
+
+[data-hl] .stack-co[data-on] { color: var(--text); }
+[data-hl] .stack-co:not([data-on]) { color: var(--text-3); }
+
+/* Cada etiqueta en su propia caja flex: las que llevan punto (en uso) no
+   se descuadran 2 px respecto a las demás por la línea base del <li>. */
+.stack-item { display: flex; }
