@@ -96,7 +96,7 @@ git push -u origin main
 
 Si añades las variables de Supabase más tarde, hazlo en **Settings → Variables and Secrets** del proyecto y lanza un nuevo despliegue (**Deployments → Retry deployment**), porque Vite las incrusta al compilar.
 
-El archivo `public/_redirects` hace que recargar `/proyecto/…` no dé 404.
+Si Cloudflare crea el proyecto como **Worker** (el flujo por defecto del panel actual), `wrangler.jsonc` ya lo configura: sirve `dist/` y activa el modo SPA para que recargar `/proyecto/…` no dé 404. La URL será `https://elkin-moreno.<tu-subdominio>.workers.dev`; ponla en `index.html` (`canonical`, `og:url`, `og:image`).
 
 **3. Comprueba**
 

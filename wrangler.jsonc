@@ -1,0 +1,12 @@
+// Despliegue en Cloudflare Workers (sitio estático).
+// "single-page-application" sirve index.html para rutas como /proyecto/…,
+// lo que antes hacía public/_redirects (que en Workers da error de bucle).
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "elkin-moreno",
+  "compatibility_date": "2026-09-01",
+  "assets": {
+    "directory": "./dist",
+    "not_found_handling": "single-page-application"
+  }
+}
