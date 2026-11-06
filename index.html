@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="es" class="dark">
+<html lang="es">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
@@ -22,21 +22,29 @@
     <meta property="og:image:alt" content="Elkin Moreno, Full Stack Developer &amp; Automation Engineer, Madrid" />
     <meta name="twitter:card" content="summary_large_image" />
 
-    <meta name="theme-color" content="#0a0a0b" />
+    <meta name="theme-color" content="#ffffff" />
 
     <!-- Fuentes propias (public/fonts, @font-face en src/index.css): sin hoja
          externa que bloquee la pintura ni IPs de visitantes enviadas a terceros.
          Se pide ya la que usa la primera pantalla. La mono sólo aparece arriba
          en el selector de idioma, que en el móvil vive dentro del menú. -->
-    <link rel="preload" as="font" type="font/woff2" href="/fonts/host-grotesk-latin.woff2" crossorigin />
-    <link rel="preload" as="font" type="font/woff2" href="/fonts/fragment-mono-latin.woff2" crossorigin media="(min-width: 640px)" />
+    <link rel="preload" as="font" type="font/woff2" href="/fonts/hanken-grotesk-latin.woff2" crossorigin />
+    <link rel="preload" as="font" type="font/woff2" href="/fonts/jetbrains-mono-latin.woff2" crossorigin media="(min-width: 640px)" />
     <script>
-      // Idioma recordado antes de que React monte (evita un parpadeo ES↔EN).
+      // Idioma y tema recordados antes de que React monte: sin parpadeo ES↔EN
+      // ni un destello claro antes del modo oscuro. Sin elección guardada, el
+      // tema sigue al del sistema.
       (function () {
+        var d = document.documentElement, lang, theme;
         try {
-          var lang = localStorage.getItem('em-lang');
-          if (lang) document.documentElement.lang = lang;
+          lang = localStorage.getItem('em-lang');
+          theme = localStorage.getItem('em-theme');
         } catch (_) {}
+        if (lang) d.lang = lang;
+        var dark = theme ? theme === 'dark' : window.matchMedia('(prefers-color-scheme: dark)').matches;
+        if (dark) d.classList.add('dark');
+        var bar = document.querySelector('meta[name="theme-color"]');
+        if (bar) bar.setAttribute('content', dark ? '#0a0a0b' : '#ffffff');
       })();
     </script>
   </head>

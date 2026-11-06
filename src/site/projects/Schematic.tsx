@@ -5,9 +5,6 @@ import { gsap, ScrollTrigger, useGSAP, EASE_OUT, prefersReducedMotion, whenIdle,
 import { projectsCopy as c } from './copy'
 import type { FlowSchema, Label, SchemaEdge } from './schemas'
 
-const ACCENT = '#ff6b2c'
-const ACCENT_LINE = 'rgba(255, 107, 44, 0.45)'
-
 type Box = { x: number; y: number; w: number; h: number }
 type Drawn = { key: string; d: string; kind: SchemaEdge['kind']; step: number }
 
@@ -143,7 +140,10 @@ export function Schematic({
     tl.from(q('[data-stage-label]'), { opacity: 0, duration: 0.4, ease: EASE_OUT, stagger: 0.05 }, 0)
     tl.from(q('[data-sn]'), { opacity: 0, y: 8, duration: 0.5, ease: EASE_OUT, stagger: 0.045 }, 0)
     tl.from(q('.sch-edge'), { opacity: 0, duration: 0.5, ease: EASE_OUT, stagger: 0.03 }, 0.15)
-    tl.set(q('.sch-trail'), { stroke: ACCENT }, 0)
+    // Mientras se dibuja, la ruta va a plena tinta; después se queda al 45 %
+    // (= --accent-line). Se anima la opacidad, no el color: así el trazo sigue
+    // al tema aunque se cambie después, y clearProps devuelve el control al CSS.
+    tl.set(q('.sch-trail'), { strokeOpacity: 1 }, 0)
     for (let s = 0; s <= maxStep; s++) {
       tl.fromTo(
         q(`.sch-trail[data-step="${s}"]`),
@@ -152,7 +152,7 @@ export function Schematic({
         0.5 + s * 0.3,
       )
     }
-    tl.to(q('.sch-trail'), { stroke: ACCENT_LINE, duration: 0.5, ease: EASE_OUT }, '>+0.1')
+    tl.to(q('.sch-trail'), { strokeOpacity: 0.45, duration: 0.5, ease: EASE_OUT, clearProps: 'strokeOpacity' }, '>+0.1')
   }
 
   const legend = (

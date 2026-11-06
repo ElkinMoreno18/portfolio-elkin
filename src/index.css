@@ -2,55 +2,108 @@
 
 /*
  * Portafolio de Elkin Moreno — sistema visual "producto tech premium".
- * Oscuro, sobrio, una sola tinta de acento que SIGNIFICA algo: vivo /
- * automatizado. Todo lo demás son neutros. Sin cristal, sin brillos,
+ * Claro y oscuro, sobrio, una sola tinta de acento que SIGNIFICA algo:
+ * vivo / automatizado. Todo lo demás son neutros. Sin cristal, sin brillos,
  * sin degradados en texto.
  */
 
 @custom-variant dark (&:where(.dark, .dark *));
 
 /* ── Fuentes, servidas desde el propio sitio (public/fonts) ──
-   Host Grotesk variable en peso (300–800) y Fragment Mono, ambas SIL OFL.
-   Sin el eje de anchura: el sitio no lo usa y pesaba el 60 % del archivo.
-   Sólo latín y latín extendido: el español y el inglés caben en el primero;
-   el segundo cubre nombres propios con otros diacríticos. */
+   Hanken Grotesk (variable en peso) para todo el texto y JetBrains Mono para
+   los datos (fechas, cifras, códigos). Ambas SIL OFL. Grotesca neutra y
+   legible a cualquier tamaño: seria sin ser fría, y con la mono de un IDE
+   para lo que es dato. Sólo latín y latín extendido: el español y el inglés
+   caben en el primero; el segundo cubre nombres con otros diacríticos. */
 @font-face {
-  font-family: "Host Grotesk";
+  font-family: "Hanken Grotesk";
   font-style: normal;
-  font-weight: 300 800;
+  font-weight: 100 900;
   font-display: swap;
-  src: url("/fonts/host-grotesk-latin.woff2") format("woff2");
+  src: url("/fonts/hanken-grotesk-latin.woff2") format("woff2");
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 @font-face {
-  font-family: "Host Grotesk";
+  font-family: "Hanken Grotesk";
   font-style: normal;
-  font-weight: 300 800;
+  font-weight: 100 900;
   font-display: swap;
-  src: url("/fonts/host-grotesk-latin-ext.woff2") format("woff2");
-  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+  src: url("/fonts/hanken-grotesk-latin-ext.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
 @font-face {
-  font-family: "Fragment Mono";
+  font-family: "JetBrains Mono";
   font-style: normal;
   font-weight: 400;
   font-display: swap;
-  src: url("/fonts/fragment-mono-latin.woff2") format("woff2");
+  src: url("/fonts/jetbrains-mono-latin.woff2") format("woff2");
   unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
 }
 @font-face {
-  font-family: "Fragment Mono";
+  font-family: "JetBrains Mono";
   font-style: normal;
   font-weight: 400;
   font-display: swap;
-  src: url("/fonts/fragment-mono-latin-ext.woff2") format("woff2");
-  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+  src: url("/fonts/jetbrains-mono-latin-ext.woff2") format("woff2");
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C4, U+2113, U+2C60-2C7F, U+A720-A7FF;
 }
+
+/* ═════════════════════════════ Temas ═════════════════════════════
+   Claro por defecto en :root; oscuro con la clase .dark (en <html>, la pone
+   el script de index.html antes de pintar). Las superficies son "niveles de
+   tinta": bg → bg-raised → surface → surface-2 se alejan del fondo en los dos
+   temas (en oscuro, más claras; en claro, más grises). Así un hover sobre
+   cualquier nivel se ve igual de bien en ambos.
+   Todos los textos cumplen AA (4,5:1) sobre bg, bg-raised, surface y surface-2. */
 
 :root {
+  color-scheme: light;
+
+  --bg:          #ffffff;
+  --bg-raised:   #fafafa;
+  --surface:     #f4f4f5;
+  --surface-2:   #ececee;
+  --line:        #e4e4e7;
+  --line-strong: #d1d1d6;
+  --text:        #111113; /* 18,9:1 sobre --bg */
+  --text-2:      #4a4a52; /* 8,8:1 sobre --bg, 7,4:1 sobre --surface-2 */
+  --text-3:      #67676f; /* 5,6:1 sobre --bg, 4,75:1 sobre --surface-2 */
+
+  /* El mismo naranja que en oscuro (tono y croma en OKLCH), más profundo:
+     5:1 sobre blanco como texto, y el texto blanco encima también 5:1. */
+  --accent:      #c64200;
+  --on-accent:   #ffffff;
+  --danger:      #c0262e; /* 5,9:1 sobre --bg */
+
+  /* Botón primario al pasar: un punto más claro que su tinta. */
+  --primary-hover: #2e2e33;
+  /* Velo de los paneles modales del /admin. */
+  --scrim:       rgb(17 17 19 / 0.32);
+  /* Filete superior de las superficies elevadas (sólo se ve en oscuro). */
+  --hairline-hi: rgb(255 255 255 / 0);
+  /* Contorno de fotos, para que no se funda con el fondo. */
+  --img-outline: rgb(17 17 19 / 0.08);
+
+  /* Lienzo de los esquemas de flujo (y de la app del portátil). */
+  --canvas:      #fafafa;
+  --canvas-dot:  #dcdce0;
+  --canvas-bar:  #ffffff;
+  --canvas-line: #e6e6e9;
+  --node-bg:     #ffffff;
+  --node-line:   #d1d1d6;
+  --edge:        #c4c4ca;
+  --edge-alt:    #a3a3aa;
+  --swatch-alt:  #8b8b93;
+
+  /* Profundidad: en claro, sombra suave y corta; nunca halo de color. */
+  --shadow-card:   0 1px 2px rgb(17 17 19 / 0.04), 0 8px 24px -12px rgb(17 17 19 / 0.12);
+  --shadow-window: 0 1px 2px rgb(17 17 19 / 0.05), 0 32px 64px -32px rgb(17 17 19 / 0.24), 0 12px 24px -16px rgb(17 17 19 / 0.1);
+}
+
+.dark {
   color-scheme: dark;
 
-  /* ── Neutros (ligeramente cálidos, no la rampa zinc de Tailwind) ── */
+  /* Neutros ligeramente fríos, con el texto principal un punto cálido. */
   --bg:          #0a0a0b;
   --bg-raised:   #0f0f11;
   --surface:     #141416;
@@ -58,49 +111,63 @@
   --line:        #222226;
   --line-strong: #2e2e33;
   --text:        #f1f0ed;
-  --text-2:      #a6a6ac; /* 8.0:1 sobre --bg */
-  --text-3:      #83838a; /* 5.3:1 sobre --bg, 4.9:1 sobre --surface, 4.6:1 sobre --surface-2 */
+  --text-2:      #a6a6ac; /* 8,2:1 sobre --bg */
+  --text-3:      #83838a; /* 5,3:1 sobre --bg, 4,6:1 sobre --surface-2 */
 
-  /* ── Acento: vivo / automatizado. Nunca decoración. ── */
-  --accent:      #ff6b2c; /* 6.9:1 sobre --bg */
+  --accent:      #ff6b2c; /* 7:1 sobre --bg */
+  --on-accent:   #140a05;
+  /* Rojo neutro, lejos del acento: "vivo" no se confunde con "fallo". */
+  --danger:      #f06464;
+
+  --primary-hover: #ffffff;
+  --scrim:       rgb(0 0 0 / 0.6);
+  --hairline-hi: rgb(255 255 255 / 0.04);
+  --img-outline: rgb(255 255 255 / 0.08);
+
+  --canvas:      #0c0c0e;
+  --canvas-dot:  #1d1d21;
+  --canvas-bar:  #0e0e10;
+  --canvas-line: #1f1f23;
+  --node-bg:     #0e0e10;
+  --node-line:   #2a2a2f;
+  --edge:        #303036;
+  --edge-alt:    #45454c;
+  --swatch-alt:  #5a5a61;
+
+  --shadow-card:   0 1px 0 0 rgb(255 255 255 / 0.04) inset, 0 12px 32px -16px rgb(0 0 0 / 0.7);
+  --shadow-window: 0 1px 0 0 rgb(255 255 255 / 0.05) inset, 0 40px 80px -32px rgb(0 0 0 / 0.85), 0 16px 32px -24px rgb(0 0 0 / 0.6);
+}
+
+/* Derivados: se declaran en cada ámbito de tema para que se recalculen con
+   sus colores (el portátil de la portada es .dark aunque la página sea clara). */
+:root,
+.dark {
   --accent-soft: color-mix(in oklab, var(--accent) 13%, transparent);
   --accent-line: color-mix(in oklab, var(--accent) 45%, transparent);
-  --on-accent:   #140a05;
-
-  /* ── Error: rojo neutro, lejos del acento para no confundir "vivo" con
-        "fallo". 5.3:1 sobre --surface, 5.7:1 sobre --bg. ── */
-  --danger:      #f06464;
   --danger-line: color-mix(in oklab, var(--danger) 55%, transparent);
   --danger-soft: color-mix(in oklab, var(--danger) 16%, transparent);
-
-  /* Marcador de posición: un punto más claro que --text-3 sobre --surface. */
+  /* Marcador de posición: entre --text-3 y --text-2 (más contraste que --text-3). */
   --placeholder: color-mix(in oklab, var(--text-3) 78%, var(--text-2));
+}
 
-  /* ── Alias del sistema anterior: /admin sigue funcionando con la
-        paleta nueva mientras se rehace. ── */
-  --bg-elevated: var(--surface);
-  --ink:         var(--text);
-  --ink-soft:    #d8d7d3;
-  --muted:       var(--text-2);
-  --faint:       var(--text-3);
-  --violet:      var(--accent);
-  --cyan:        var(--accent);
-  --amber:       var(--accent);
-
+:root {
   /* ── Movimiento (estándares de Emil Kowalski) ── */
   --ease-out:    cubic-bezier(0.23, 1, 0.32, 1);
   --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+}
 
-  /* ── Profundidad: desplazamiento + desenfoque, nunca halo de color ── */
-  --shadow-card: 0 1px 0 0 rgb(255 255 255 / 0.04) inset, 0 12px 32px -16px rgb(0 0 0 / 0.7);
-  --shadow-window: 0 1px 0 0 rgb(255 255 255 / 0.05) inset, 0 40px 80px -32px rgb(0 0 0 / 0.85), 0 16px 32px -24px rgb(0 0 0 / 0.6);
-  --shadow-lift: var(--shadow-card);
+/* Al cambiar de tema, nada transiciona a medias: todo cambia en el mismo
+   fotograma (y, si el navegador puede, con un fundido de toda la página). */
+.theme-switching,
+.theme-switching *,
+.theme-switching *::before,
+.theme-switching *::after {
+  transition: none !important;
 }
 
 @theme inline {
   --color-bg: var(--bg);
   --color-bg-raised: var(--bg-raised);
-  --color-bg-elevated: var(--bg-elevated);
   --color-surface: var(--surface);
   --color-surface-2: var(--surface-2);
   --color-line: var(--line);
@@ -112,18 +179,10 @@
   --color-on-accent: var(--on-accent);
   --color-danger: var(--danger);
   --color-placeholder: var(--placeholder);
-  /* alias heredados */
-  --color-ink: var(--ink);
-  --color-ink-soft: var(--ink-soft);
-  --color-muted: var(--muted);
-  --color-faint: var(--faint);
-  --color-violet: var(--violet);
-  --color-cyan: var(--cyan);
-  --color-amber: var(--amber);
 
-  --font-sans: "Host Grotesk", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-  --font-display: "Host Grotesk", ui-sans-serif, system-ui, sans-serif;
-  --font-mono: "Fragment Mono", ui-monospace, "SF Mono", Menlo, monospace;
+  --font-sans: "Hanken Grotesk", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-display: "Hanken Grotesk", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
 
   --radius-sm: 6px;
   --radius-md: 10px;
@@ -131,7 +190,6 @@
 
   --shadow-card: var(--shadow-card);
   --shadow-window: var(--shadow-window);
-  --shadow-lift: var(--shadow-lift);
 
   --ease-out-expo: var(--ease-out);
 }

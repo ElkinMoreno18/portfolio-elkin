@@ -37,9 +37,9 @@ export interface Project {
   metrics: ProjectMetric[]
   year: number
   /**
-   * Opcionales, sólo de presentación (aún no son columnas de Supabase):
-   * año de inicio cuando el trabajo abarca varios ("2022 – 2025"), y si sigue
-   * en curso ("2025 – hoy").
+   * Año de inicio cuando el trabajo abarca varios ("2022 – 2025"), y si sigue
+   * en curso ("2025 – hoy"). Opcionales en los datos de ejemplo; en Supabase
+   * son columnas (year_start null, ongoing false por defecto).
    */
   year_start?: number | null
   ongoing?: boolean
@@ -87,6 +87,8 @@ export function emptyDraft(): ProjectDraft {
     demo_url: null,
     metrics: [],
     year: new Date().getFullYear(),
+    year_start: null,
+    ongoing: false,
     featured: false,
     published: true,
     sort_order: 0,

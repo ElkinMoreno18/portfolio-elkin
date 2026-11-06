@@ -22,15 +22,16 @@ export function Container({
 }
 
 /* ─────────────────────────── Botones ───────────────────────────
-   Primario: tinta clara sobre fondo oscuro (el acento se reserva para
-   estados "vivo/automatizado", no para llamar la atención). */
+   Primario: la tinta del texto como fondo (negro en claro, blanco roto en
+   oscuro). El acento se reserva para estados "vivo/automatizado", no para
+   llamar la atención. */
 type Variant = 'primary' | 'secondary' | 'ghost'
 const base =
   'group inline-flex items-center justify-center gap-2 rounded-[var(--radius-sm)] font-medium whitespace-nowrap ' +
   'transition-[background-color,border-color,color,transform] duration-200 ease-[var(--ease-out)] ' +
   'active:scale-[0.97] disabled:pointer-events-none disabled:opacity-50 select-none'
 const variants: Record<Variant, string> = {
-  primary: 'bg-text text-bg hover:bg-white',
+  primary: 'bg-text text-bg hover:bg-[var(--primary-hover)]',
   secondary: 'border border-line-strong bg-surface text-text hover:border-text-3 hover:bg-surface-2',
   ghost: 'text-text-2 hover:text-text hover:bg-surface',
 }

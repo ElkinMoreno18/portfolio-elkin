@@ -8,6 +8,7 @@ import { Experience } from './sections/Experience'
 import { Stack } from './sections/Stack'
 import { About } from './sections/About'
 import { Contact } from './sections/Contact'
+import { useContent } from '@/content/store'
 
 /** Tiempo máximo que se mantiene colocada la sección mientras la página termina de montarse. */
 const HOLD_MS = 4000
@@ -24,6 +25,10 @@ function safeDecode(s: string) {
 export default function Home() {
   // key cambia en cada navegación: pulsar otra vez el mismo enlace vuelve a colocar la sección.
   const { hash, key } = useLocation()
+  const { stack, experience } = useContent()
+  // El stack cruza sus tecnologías con los puestos: si cambia cualquiera de
+  // los dos ya montado (guardado en /admin), la tabla se vuelve a montar.
+  const stackKey = JSON.stringify([stack, experience.map((j) => [j.company, j.end, j.tech])])
 
   // Llegada con /#seccion (volver de un detalle, un enlace desde otra página).
   // La sección se coloca antes de la primera pintura, así no se ve la portada
@@ -58,7 +63,7 @@ export default function Home() {
       <Hero />
       <Projects />
       <Experience />
-      <Stack />
+      <Stack key={stackKey} />
       <About />
       <Contact />
     </>

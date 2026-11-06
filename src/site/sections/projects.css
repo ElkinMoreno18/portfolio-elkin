@@ -79,8 +79,8 @@
   min-height: 320px;
   border: 1px solid var(--line);
   border-radius: var(--radius-lg);
-  background-color: #0c0c0e;
-  background-image: radial-gradient(circle at 1px 1px, #1d1d21 1px, transparent 0);
+  background-color: var(--canvas);
+  background-image: radial-gradient(circle at 1px 1px, var(--canvas-dot) 1px, transparent 0);
   background-size: 24px 24px;
   background-position: 12px 12px;
   overflow: hidden;
@@ -94,8 +94,8 @@
   gap: 16px;
   min-height: 44px;
   padding: 0 18px;
-  border-bottom: 1px solid #1f1f23;
-  background: #0e0e10;
+  border-bottom: 1px solid var(--canvas-line);
+  background: var(--canvas-bar);
   font-size: 13px;
   font-weight: 500;
   color: var(--text-2);
@@ -157,9 +157,9 @@
   gap: 3px;
   padding: 8px 12px;
   /* Trazo, no tarjeta: borde fino sobre el lienzo, sin sombra ni relleno claro. */
-  border: 1px solid #2a2a2f;
+  border: 1px solid var(--node-line);
   border-radius: 8px;
-  background: #0e0e10;
+  background: var(--node-bg);
 }
 .sch-node-label {
   font-size: 14px;
@@ -182,11 +182,14 @@
 /* En página, el nodo no se estira a toda la columna: las aristas respiran. */
 .sch-page:not(.sch-vertical) .sch-node { justify-self: start; width: 100%; max-width: 13.5rem; }
 
-.sch-edge { fill: none; stroke: #303036; stroke-width: 1.5; }
-.sch-edge-alt { stroke: #45454c; stroke-dasharray: 4 4; }
+.sch-edge { fill: none; stroke: var(--edge); stroke-width: 1.5; }
+.sch-edge-alt { stroke: var(--edge-alt); stroke-dasharray: 4 4; }
 .sch-trail {
   fill: none;
-  stroke: var(--accent-line);
+  /* Acento al 45 % por opacidad (= --accent-line): GSAP la sube a 1 mientras
+     dibuja la ruta y la devuelve aquí. */
+  stroke: var(--accent);
+  stroke-opacity: 0.45;
   stroke-width: 2;
   /* pathLength=1: el trazo completo es 1; GSAP anima el offset de 1 a 0. */
   stroke-dasharray: 1;
@@ -204,7 +207,7 @@
 }
 .sch-legend li { display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; }
 .sch-swatch-main { stroke: var(--accent-line); stroke-width: 2; }
-.sch-swatch-alt { stroke: #5a5a61; stroke-width: 1.5; stroke-dasharray: 3 3; }
+.sch-swatch-alt { stroke: var(--swatch-alt); stroke-width: 1.5; stroke-dasharray: 3 3; }
 .sch-foot { padding: 0 14px 16px; }
 
 /* ── Stack por capas ── */
@@ -216,7 +219,7 @@
   gap: 16px;
   align-items: center;
   padding: 14px 0;
-  border-top: 1px solid #1f1f23;
+  border-top: 1px solid var(--canvas-line);
 }
 .pj-layer:first-child { border-top: 0; }
 .pj-layer-name { font-size: 13px; color: var(--text-3); }
@@ -365,7 +368,7 @@
   z-index: 0;
   background: var(--surface-2);
   /* Filete superior claro: la píldora es una superficie elevada, no un halo. */
-  background-image: linear-gradient(rgb(255 255 255 / 0.06), rgb(255 255 255 / 0.06));
+  background-image: linear-gradient(var(--hairline-hi), var(--hairline-hi));
   background-size: 100% 1px;
   background-repeat: no-repeat;
 }

@@ -1,18 +1,11 @@
 import { useRef, useState } from 'react'
 import { useLang } from '@/i18n'
-import { about } from '@/data/profile'
+import { useContent } from '@/content/store'
 import { cn } from '@/lib/utils'
 import { gsap, SplitText, useGSAP, EASE_OUT, reveal, revealOnFocus, alreadyPast, whenIdle } from '../motion'
 import { Container, SectionHeader } from '../ui'
 import { aboutCopy as c, PORTRAIT_SRC, plain } from '../about/copy'
-
-/* Su principio se destaca como frase; los otros dos quedan como lista. */
-const FEATURED = Math.max(
-  0,
-  about.principles.findIndex((p) => /dos veces/i.test(p.title.es)),
-)
-const featured = about.principles[FEATURED]
-const others = about.principles.filter((_, i) => i !== FEATURED)
+import { useTheme } from '../theme'
 
 /**
  * Sobre mí. Historia en una columna de lectura (~65ch), su principio como
@@ -26,11 +19,17 @@ const others = about.principles.filter((_, i) => i !== FEATURED)
  */
 export function About() {
   const { pick, lang } = useLang()
+  const { about, profile } = useContent()
+  const motto = pick(about.motto)
+  const theme = useTheme()
   const root = useRef<HTMLElement>(null)
   /** Con retrato, título y foto a la izquierda y la historia al lado. Sin él
    *  (hoy no hay), la columna izquierda quedaría vacía junto a la historia:
    *  el título va encima y la historia debajo, como en el resto de secciones. */
-  const [portrait, setPortrait] = useState<'loading' | 'ok' | 'none'>('loading')
+  const portraitSrc = profile.portraitUrl.trim() || PORTRAIT_SRC
+  // Por dirección: si se sube otro retrato desde el panel, se vuelve a probar.
+  const [portraitState, setPortraitState] = useState<Record<string, 'ok' | 'none'>>({})
+  const portrait = portraitState[portraitSrc] ?? 'loading'
   const withPortrait = portrait === 'ok'
 
   /* Entradas que no dependen del idioma: se montan una vez, con el hilo
@@ -67,7 +66,9 @@ export function About() {
     { scope: root },
   )
 
-  /* La frase se parte en palabras de nuevo con cada idioma (el h3 lleva key={lang}). */
+  /* La frase se parte en palabras de nuevo con cada idioma o texto nuevo (el h3
+     lleva esa key), y se rehace con cada tema: los dos grises que interpola son
+     los del tema. */
   useGSAP(
     (_, contextSafe) =>
       whenIdle(
@@ -94,7 +95,7 @@ export function About() {
           })
         }),
       ),
-    { scope: root, dependencies: [lang], revertOnUpdate: true },
+    { scope: root, dependencies: [lang, motto, theme], revertOnUpdate: true },
   )
 
   const paragraphs = about.paragraphs[lang]
@@ -106,7 +107,12 @@ export function About() {
         <div data-astory className={cn('grid gap-8', withPortrait ? 'lg:grid-cols-12 lg:gap-x-8' : 'md:gap-10')}>
           <div className={cn(withPortrait && 'lg:col-span-4')}>
             <SectionHeader id="sobre-mi-title" title={pick(c.title)} className="mb-0! md:mb-0!" />
-            <Portrait state={portrait} onState={setPortrait} />
+            <Portrait
+              src={portraitSrc}
+              alt={`${pick(c.portraitAlt)} ${profile.name}`}
+              state={portrait}
+              onState={(s) => setPortraitState((m) => ({ ...m, [portraitSrc]: s }))}
+            />
           </div>
           <div className={cn(withPortrait && 'lg:col-span-7 lg:col-start-6')}>
             {paragraphs.map((p, i) => (
@@ -128,22 +134,22 @@ export function About() {
         {/* ── Su principio, como frase ── */}
         <div className="mt-24 md:mt-36">
           <h3
-            key={lang}
+            key={`${lang}:${motto}`}
             data-motto
             className="max-w-[13em] text-[clamp(2.5rem,1.1rem+4.4vw,4.5rem)] leading-[1.02] tracking-[-0.04em]"
           >
-            {pick(c.motto)}
+            {motto}
           </h3>
           <p className="mt-6 max-w-[38rem] text-[clamp(1.05rem,0.98rem+0.3vw,1.2rem)] leading-relaxed text-text-2">
-            {pick(featured.body)}
+            {pick(about.mottoBody)}
           </p>
         </div>
 
         {/* ── Los otros principios y lo que está en curso ── */}
         <div className="mt-16 grid gap-14 md:mt-24 lg:grid-cols-12 lg:gap-8">
           <ul aria-label={pick(c.principlesLabel)} className="grid content-start gap-10 sm:grid-cols-2 sm:gap-8 lg:col-span-7">
-            {others.map((p) => (
-              <li key={p.title.en} className="border-t border-line pt-5">
+            {about.principles.map((p, i) => (
+              <li key={i} className="border-t border-line pt-5">
                 <h3 className="text-[18px] leading-snug tracking-[-0.02em]">{pick(p.title)}</h3>
                 <p className="mt-2 text-[16px] leading-relaxed text-text-2">{pick(p.body)}</p>
               </li>
@@ -176,16 +182,27 @@ export function About() {
 }
 
 /**
- * Retrato opcional. Sólo aparece si /portrait.jpg carga de verdad; si falla
- * (no existe, o el servidor devuelve otra cosa) no se pinta nada en su lugar.
+ * Retrato opcional (el que se sube en /admin, o /portrait.jpg). Sólo aparece
+ * si carga de verdad; si falla (no existe, o el servidor devuelve otra cosa)
+ * no se pinta nada en su lugar.
  */
-function Portrait({ state, onState: setState }: { state: 'loading' | 'ok' | 'none'; onState: (s: 'ok' | 'none') => void }) {
-  const { pick } = useLang()
+function Portrait({
+  src,
+  alt,
+  state,
+  onState: setState,
+}: {
+  src: string
+  alt: string
+  state: 'loading' | 'ok' | 'none'
+  onState: (s: 'ok' | 'none') => void
+}) {
   if (state === 'none') return null
   return (
     <img
-      src={PORTRAIT_SRC}
-      alt={pick(c.portraitAlt)}
+      key={src}
+      src={src}
+      alt={alt}
       width={544}
       height={680}
       decoding="async"
@@ -193,7 +210,7 @@ function Portrait({ state, onState: setState }: { state: 'loading' | 'ok' | 'non
       onError={() => setState('none')}
       className={cn(
         'mt-8 aspect-[4/5] w-full max-w-[15rem] rounded-[var(--radius-md)] object-cover lg:mt-10 lg:max-w-[17rem]',
-        'outline outline-1 -outline-offset-1 outline-[rgb(255_255_255/0.08)]',
+        'outline outline-1 -outline-offset-1 outline-[var(--img-outline)]',
         state !== 'ok' && 'hidden',
       )}
     />

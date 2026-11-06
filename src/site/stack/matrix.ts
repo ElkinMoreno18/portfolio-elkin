@@ -1,14 +1,15 @@
-import { experience, stack, type StackGroup } from '@/data/profile'
+import { shortCompany, type Job } from '@/content/derive'
+import type { StackGroupContent } from '@/content/types'
 
 /**
  * Cruce entre el stack y la experiencia. No infiere nada: una tecnología
  * "se usó en" una empresa sólo si su nombre aparece tal cual (sin
- * distinguir mayúsculas) en experience[].tech de ese puesto. Si no hay
+ * distinguir mayúsculas) en las tecnologías de ese puesto. Si no hay
  * coincidencia exacta, no se muestra nada.
  */
 
 export interface Company {
-  /** Nombre completo, tal y como está en profile.ts. Sirve de clave. */
+  /** Nombre completo, tal y como está en la experiencia. Sirve de clave. */
   name: string
   /** Nombre corto para la tabla (sin la forma jurídica). */
   short: string
@@ -23,7 +24,7 @@ export interface StackItem {
   inUse: boolean
 }
 
-export interface StackRow extends Omit<StackGroup, 'items'> {
+export interface StackRow extends Omit<StackGroupContent, 'items'> {
   items: StackItem[]
   /** Empresas donde se usó al menos una tecnología del grupo, de la más reciente a la más antigua. */
   used: Company[]
@@ -31,35 +32,33 @@ export interface StackRow extends Omit<StackGroup, 'items'> {
 
 const norm = (s: string) => s.trim().toLowerCase()
 
-/** "Closer Logistics SL" → "Closer Logistics". Sólo quita la forma jurídica. */
-export function shortCompany(name: string) {
-  return name.replace(/\s+(S\.?A\.?S\.?|S\.?L\.?|S\.?A\.?|IPS)$/i, '').trim()
+/** Empresas sin repetir, en el orden de la experiencia (la más reciente primero). */
+export function companiesOf(jobs: Job[]): Company[] {
+  return jobs
+    .filter((job, i, all) => job.company.trim() && all.findIndex((j) => j.company === job.company) === i)
+    .map((job) => ({
+      name: job.company,
+      short: shortCompany(job.company),
+      current: jobs.some((j) => j.company === job.company && j.current),
+    }))
 }
 
-export const companies: Company[] = experience
-  .filter((job, i, all) => all.findIndex((j) => j.company === job.company) === i)
-  .map((job) => ({ name: job.company, short: shortCompany(job.company), current: Boolean(job.current) }))
-
-export const currentCompany = companies.find((c) => c.current) ?? null
-
-function techByCompany() {
-  const map = new Map<string, Set<string>>()
-  for (const job of experience) {
-    const set = map.get(job.company) ?? new Set<string>()
+export function buildRows(jobs: Job[], stack: StackGroupContent[]): StackRow[] {
+  const companies = companiesOf(jobs)
+  const tech = new Map<string, Set<string>>()
+  for (const job of jobs) {
+    const set = tech.get(job.company) ?? new Set<string>()
     job.tech.forEach((t) => set.add(norm(t)))
-    map.set(job.company, set)
+    tech.set(job.company, set)
   }
-  return map
-}
-
-export function buildRows(): StackRow[] {
-  const tech = techByCompany()
-  return stack.map((group) => {
-    const items = group.items.map((name) => {
-      const at = companies.filter((c) => tech.get(c.name)?.has(norm(name))).map((c) => c.name)
-      return { name, at, inUse: companies.some((c) => c.current && at.includes(c.name)) }
+  return stack
+    .filter((group) => group.items.length > 0)
+    .map((group, i) => {
+      const items = group.items.map((name) => {
+        const at = companies.filter((c) => tech.get(c.name)?.has(norm(name))).map((c) => c.name)
+        return { name, at, inUse: companies.some((c) => c.current && at.includes(c.name)) }
+      })
+      const used = companies.filter((c) => items.some((it) => it.at.includes(c.name)))
+      return { ...group, key: group.key || `group-${i}`, items, used }
     })
-    const used = companies.filter((c) => items.some((it) => it.at.includes(c.name)))
-    return { ...group, items, used }
-  })
 }

@@ -4,7 +4,9 @@ import { cn } from '@/lib/utils'
 import { gsap, ScrollTrigger, useGSAP, EASE_OUT, alreadyPast, whenIdle } from '../motion'
 import { Container, SectionHeader, Tag } from '../ui'
 import { stackCopy as c, itemLabel } from '../stack/copy'
-import { buildRows, currentCompany } from '../stack/matrix'
+import { useContent } from '@/content/store'
+import { jobsOf } from '@/content/derive'
+import { buildRows, companiesOf } from '../stack/matrix'
 import './stack.css'
 
 /** Qué está señalando el ratón: una tecnología de un área, o una empresa. */
@@ -26,7 +28,10 @@ const isMouse = (e: PointerEvent) => e.pointerType === 'mouse'
  */
 export function Stack() {
   const { pick, lang } = useLang()
-  const rows = useMemo(buildRows, [])
+  const content = useContent()
+  const jobs = useMemo(() => jobsOf(content), [content])
+  const rows = useMemo(() => buildRows(jobs, content.stack), [jobs, content.stack])
+  const currentCompany = companiesOf(jobs).find((co) => co.current) ?? null
   const [hl, setHl] = useState<Highlight>(null)
   const root = useRef<HTMLElement>(null)
 

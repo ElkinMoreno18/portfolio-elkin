@@ -1,6 +1,7 @@
 import { useEffect, useId, useRef, useState, type SVGProps } from 'react'
 import { useLang } from '@/i18n'
-import { experience, type Job } from '@/data/profile'
+import { useContent } from '@/content/store'
+import { jobsOf, type Job } from '@/content/derive'
 import { cn } from '@/lib/utils'
 import { gsap, ScrollTrigger, useGSAP, EASE_OUT, alreadyPast, revealOnFocus, scheduleRefresh, whenIdle } from '../motion'
 import { Tag } from '../ui'
@@ -39,6 +40,7 @@ function IconChevronDown(p: SVGProps<SVGSVGElement>) {
  */
 export function Timeline() {
   const { pick } = useLang()
+  const jobs = jobsOf(useContent())
   const wrap = useRef<HTMLDivElement>(null)
   const fracs = useRef<number[]>([])
 
@@ -151,8 +153,8 @@ export function Timeline() {
         <div className="exp-fill" data-fill />
       </div>
       <ol className="exp-list" aria-label={pick(c.jobsLabel)}>
-        {experience.map((job, i) => (
-          <JobEntry key={job.company + job.period.en} job={job} index={i} />
+        {jobs.map((job, i) => (
+          <JobEntry key={job.company + job.start} job={job} index={i} />
         ))}
       </ol>
     </div>

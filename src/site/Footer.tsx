@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { useLang } from '@/i18n'
-import { profile } from '@/data/profile'
+import { useContent } from '@/content/store'
+import { socialsOf } from '@/content/derive'
 import { madridTime } from '@/lib/utils'
 import { siteCopy } from './copy'
 import { Container } from './ui'
@@ -11,6 +12,7 @@ const SOCIAL_ICON = { linkedin: IconLinkedIn, github: IconGitHub, mail: IconMail
 
 export function Footer() {
   const { pick } = useLang()
+  const { profile } = useContent()
   const [time, setTime] = useState(() => madridTime())
 
   useEffect(() => {
@@ -25,7 +27,7 @@ export function Footer() {
           <Mark />
           <div>
             <p className="text-[14px] font-semibold">{profile.name}</p>
-            <p className="text-[13px] text-text-3">Full Stack Developer &amp; Automation Engineer</p>
+            <p className="text-[13px] text-text-3">{pick(profile.title)}</p>
           </div>
         </div>
 
@@ -35,8 +37,8 @@ export function Footer() {
           </span>
           <span>© {new Date().getFullYear()} {profile.fullName}</span>
           <div className="flex items-center gap-1">
-            {profile.socials.map((s) => {
-              const Icon = SOCIAL_ICON[s.icon as keyof typeof SOCIAL_ICON]
+            {socialsOf(profile).map((s) => {
+              const Icon = SOCIAL_ICON[s.icon]
               return (
                 <a
                   key={s.label}

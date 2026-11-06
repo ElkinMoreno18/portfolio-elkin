@@ -1,12 +1,12 @@
 import { useEffect, useRef, useState } from 'react'
 import type { ChangeEvent, FormEvent, KeyboardEvent, ReactNode, SVGProps } from 'react'
 import { useLang } from '@/i18n'
-import { profile } from '@/data/profile'
+import { useContent } from '@/content/store'
+import { cvHref, linkedinHandle } from '@/content/derive'
 import { sendContactMessage } from '@/lib/projectsApi'
 import type { Lang } from '@/lib/types'
 import { cn } from '@/lib/utils'
 import { gsap, useGSAP, reveal, revealOnFocus, alreadyPast, whenIdle, EASE_OUT } from '../motion'
-import { siteCopy } from '../copy'
 import { Button, ButtonLink, Container, SectionHeader } from '../ui'
 import { IconArrowRight, IconArrowUpRight, IconCheck, IconCopy, IconDownload, IconMail } from '../icons'
 import './contact.css'
@@ -95,8 +95,6 @@ const c = {
 /* Mismos límites que los CHECK de contact_messages (supabase/schema.sql). */
 const LIMIT = { name: 120, email: 200, subject: 200, message: 5000 } as const
 const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/
-const LINKEDIN = profile.socials.find((s) => s.icon === 'linkedin')!
-const LINKEDIN_HANDLE = LINKEDIN.href.replace(/^https?:\/\/(www\.)?linkedin\.com\//, '').replace(/\/$/, '')
 
 /* Icono local (misma rejilla 16 y trazo 1.5 que icons.tsx). */
 function IconAlert({ size = 16, ...rest }: SVGProps<SVGSVGElement> & { size?: number }) {
@@ -132,11 +130,11 @@ function Spinner() {
 /* ─────────────────────────── Utilidades ─────────────────────────── */
 type Payload = { name: string; email: string; subject: string; body: string }
 
-function mailtoFor(p: Payload | null, lang: Lang) {
-  if (!p) return `mailto:${profile.email}`
+function mailtoFor(email: string, p: Payload | null, lang: Lang) {
+  if (!p) return `mailto:${email}`
   const subject = p.subject || c.mailSubject[lang](p.name)
   const body = `${p.body}\n\n${p.name}\n${p.email}`
-  return `mailto:${profile.email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
+  return `mailto:${email}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`
 }
 
 async function copyText(text: string) {
@@ -280,18 +278,26 @@ export function Contact() {
 /* ─────────────────────────── Camino directo ─────────────────────────── */
 function Direct() {
   const { pick, lang } = useLang()
+  const { profile } = useContent()
   const size = useFileSize(profile.cvUrl)
+  const linkedin = profile.linkedin.trim()
 
   return (
     <div data-ct-direct className="mt-10 md:mt-12">
       <h3 className="sr-only">{pick(c.directTitle)}</h3>
 
       <p data-ct-row className="flex flex-wrap items-center gap-x-2.5 gap-y-1 text-[14px] text-text-2">
-        <span aria-hidden="true" className="size-1.5 rounded-full bg-accent" />
-        <span className="text-text">{pick(siteCopy.hero.availability)}</span>
-        <span aria-hidden="true" className="hidden text-text-3 sm:inline">·</span>
-        <span className="basis-full pl-4 sm:basis-auto sm:pl-0">{pick(siteCopy.hero.location)}</span>
-        <span className="basis-full pl-4 text-text-3">{pick(siteCopy.hero.workMode)}</span>
+        {profile.available && (
+          <>
+            <span aria-hidden="true" className="size-1.5 rounded-full bg-accent" />
+            <span className="text-text">{pick(profile.availability)}</span>
+            <span aria-hidden="true" className="hidden text-text-3 sm:inline">·</span>
+          </>
+        )}
+        <span className={profile.available ? 'basis-full pl-4 sm:basis-auto sm:pl-0' : ''}>{pick(profile.location)}</span>
+        {pick(profile.workMode) && (
+          <span className={profile.available ? 'basis-full pl-4 text-text-3' : 'basis-full text-text-3'}>{pick(profile.workMode)}</span>
+        )}
       </p>
 
       <div data-ct-row className="mt-6 border-t border-line pt-6 pb-7">
@@ -309,24 +315,26 @@ function Direct() {
       </div>
 
       <ul className="border-b border-line">
+        {linkedin && (
         <li data-ct-row>
           <a
-            href={LINKEDIN.href}
+            href={linkedin}
             target="_blank"
             rel="noreferrer noopener"
             className="ct-row grid grid-cols-[5.5rem_minmax(0,1fr)_auto] items-center gap-4 border-t border-line py-4"
           >
-            <span className="text-[14px] text-text-3">{LINKEDIN.label}</span>
+            <span className="text-[14px] text-text-3">LinkedIn</span>
             <span className="ct-row-value truncate text-[15px] text-text-2">
-              {LINKEDIN_HANDLE}
+              {linkedinHandle(linkedin)}
               <span className="sr-only"> {pick(c.newTab)}</span>
             </span>
             <IconArrowUpRight className="ct-row-go text-text-3" />
           </a>
         </li>
+        )}
         <li data-ct-row>
           <a
-            href={profile.cvUrl}
+            href={cvHref(profile)}
             download
             type="application/pdf"
             data-kind="cv"
@@ -350,6 +358,7 @@ function Direct() {
 /** Copiar el email. El texto y el icono se cruzan sin que el botón cambie de ancho. */
 function CopyEmail({ targetId }: { targetId?: string }) {
   const { pick } = useLang()
+  const { profile } = useContent()
   const [state, setState] = useState<'idle' | 'copied' | 'failed'>('idle')
   const timer = useRef<number | undefined>(undefined)
 
@@ -409,6 +418,7 @@ const wait = (ms: number) => new Promise((r) => setTimeout(r, ms))
 
 function MessageForm() {
   const { pick, lang } = useLang()
+  const { profile } = useContent()
   const [values, setValues] = useState<Values>(EMPTY)
   const [status, setStatus] = useState<Status>('draft')
   const [tried, setTried] = useState(false)
@@ -471,7 +481,7 @@ function MessageForm() {
     } catch (err) {
       if (err instanceof Error && err.message === 'NO_BACKEND') {
         // Sin backend el mensaje no se pierde: pasa al correo del visitante ya escrito.
-        window.location.href = mailtoFor(payload, lang)
+        window.location.href = mailtoFor(profile.email, payload, lang)
         setStatus('handoff')
         return
       }
@@ -631,12 +641,12 @@ function MessageForm() {
             {status === 'error' && (
               <Notice icon={<IconAlert className="ct-err" />} title={pick(c.errorTitle)}>
                 {pick(c.errorBody)}{' '}
-                <a href={mailtoFor(last, lang)} className="text-text underline decoration-line-strong hover:decoration-text-3">
+                <a href={mailtoFor(profile.email, last, lang)} className="text-text underline decoration-line-strong hover:decoration-text-3">
                   {profile.email}
                 </a>
                 .
                 <div className="mt-3">
-                  <ButtonLink href={mailtoFor(last, lang)} variant="secondary" size="sm">
+                  <ButtonLink href={mailtoFor(profile.email, last, lang)} variant="secondary" size="sm">
                     <IconMail />
                     {pick(c.openMail)}
                   </ButtonLink>
@@ -646,7 +656,7 @@ function MessageForm() {
             {status === 'handoff' && (
               <Notice icon={<IconMail className="text-text-2" />} title={pick(c.handoffTitle)}>
                 {pick(c.handoffBody)}{' '}
-                <a href={mailtoFor(last, lang)} className="text-text underline decoration-line-strong hover:decoration-text-3">
+                <a href={mailtoFor(profile.email, last, lang)} className="text-text underline decoration-line-strong hover:decoration-text-3">
                   {profile.email}
                 </a>
                 .

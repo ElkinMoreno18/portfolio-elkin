@@ -38,7 +38,9 @@ export const Laptop = forwardRef<HTMLDivElement, { children: ReactNode }>(functi
   }, [])
 
   return (
-    <div className="lap-scene" data-lap-scene>
+    // .dark: el portátil es un objeto (aluminio grafito, pantalla con la app en
+    // oscuro) y se ve igual en los dos temas de la página.
+    <div className="lap-scene dark" data-lap-scene>
       <div className="lap" ref={ref} data-lap>
         <div className="lap-lid" data-lid>
           <div className="lap-face lap-front">

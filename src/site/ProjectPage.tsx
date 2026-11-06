@@ -4,7 +4,8 @@ import { useLang } from '@/i18n'
 import { cn } from '@/lib/utils'
 import type { Project } from '@/lib/types'
 import { gsap, useGSAP, EASE_OUT, reveal, prefersReducedMotion } from './motion'
-import { profile } from '@/data/profile'
+import { useContent } from '@/content/store'
+import { cvHref } from '@/content/derive'
 import { siteCopy } from './copy'
 import { ButtonLink, Container, Tag, TextLink } from './ui'
 import { IconArrowLeft, IconArrowRight, IconArrowUpRight, IconDownload, IconGitHub } from './icons'
@@ -303,6 +304,7 @@ function NextProject({ p }: { p: Project }) {
  */
 function Closing() {
   const { pick } = useLang()
+  const { profile } = useContent()
   return (
     <section aria-labelledby="pd-closing" className="mt-24 border-t border-line md:mt-32">
       <Container size="wide" className="flex flex-col gap-6 py-10 md:flex-row md:items-center md:justify-between md:gap-10 md:py-12">
@@ -310,18 +312,27 @@ function Closing() {
           <h2 id="pd-closing" className="sr-only">
             {pick(siteCopy.closing.label)}
           </h2>
-          <p className="flex items-center gap-2.5 text-[clamp(1.05rem,1rem+0.35vw,1.25rem)] leading-snug font-medium tracking-[-0.015em] text-text">
-            <span aria-hidden="true" className="size-1.5 shrink-0 rounded-full bg-accent" />
-            {pick(siteCopy.hero.availability)}
-          </p>
-          <p className="mt-1.5 pl-4 text-[14px] text-text-3">{pick(siteCopy.hero.location)}</p>
+          {profile.available ? (
+            <>
+              <p className="flex items-center gap-2.5 text-[clamp(1.05rem,1rem+0.35vw,1.25rem)] leading-snug font-medium tracking-[-0.015em] text-text">
+                <span aria-hidden="true" className="size-1.5 shrink-0 rounded-full bg-accent" />
+                {pick(profile.availability)}
+              </p>
+              <p className="mt-1.5 pl-4 text-[14px] text-text-3">{pick(profile.location)}</p>
+            </>
+          ) : (
+            <p className="text-[clamp(1.05rem,1rem+0.35vw,1.25rem)] leading-snug font-medium tracking-[-0.015em] text-text">
+              {profile.name}
+              <span className="mt-1.5 block text-[14px] font-normal tracking-normal text-text-3">{pick(profile.location)}</span>
+            </p>
+          )}
         </div>
         <div className="flex shrink-0 flex-wrap items-center gap-x-6 gap-y-4">
           <ButtonLink to="/#contacto" size="lg">
             {pick(siteCopy.hero.ctaPrimary)}
             <IconArrowRight className="transition-transform duration-200 ease-[var(--ease-out)] group-hover:translate-x-0.5" />
           </ButtonLink>
-          <TextLink href={profile.cvUrl} download>
+          <TextLink href={cvHref(profile)} download>
             <IconDownload />
             {pick(siteCopy.hero.ctaCv)}
           </TextLink>

@@ -33,6 +33,9 @@ create table if not exists public.projects (
   metrics         jsonb not null default '[]'::jsonb,
 
   year            int not null default extract(year from now())::int,
+  -- Periodo: "2022 – 2025" (year_start) o "2025 – hoy" (ongoing).
+  year_start      int,
+  ongoing         boolean not null default false,
   featured        boolean not null default false,
   published       boolean not null default true,
   sort_order      int not null default 0,
@@ -41,9 +44,25 @@ create table if not exists public.projects (
   updated_at      timestamptz not null default now()
 );
 
+-- Si la tabla ya existía de una versión anterior, se le añaden las columnas nuevas.
+alter table public.projects add column if not exists year_start int;
+alter table public.projects add column if not exists ongoing boolean not null default false;
+
 -- El sitio público siempre filtra por published y ordena por estas columnas.
 create index if not exists projects_published_idx
   on public.projects (published, featured desc, sort_order asc);
+
+-- ─────────────────────── CONTENIDO DEL SITIO (/admin) ───────────────────────
+-- Una fila por sección del portafolio, con su contenido en JSON (los dos
+-- idiomas dentro). Mientras una sección no tenga fila, el sitio usa la de
+-- src/data/profile.ts.
+
+create table if not exists public.site_content (
+  key         text primary key
+              check (key in ('profile','about','experience','education','languages','stack')),
+  data        jsonb not null,
+  updated_at  timestamptz not null default now()
+);
 
 -- ───────────────────────── MENSAJES DE CONTACTO ─────────────────────────
 
@@ -78,6 +97,20 @@ create trigger projects_touch_updated_at
   before update on public.projects
   for each row execute function public.touch_updated_at();
 
+drop trigger if exists site_content_touch_updated_at on public.site_content;
+create trigger site_content_touch_updated_at
+  before update on public.site_content
+  for each row execute function public.touch_updated_at();
+
+-- ─────────────────────────────── PERMISOS ───────────────────────────────
+-- Explícitos por si el proyecto no los concede por defecto a las tablas
+-- nuevas. Lo que de verdad decide qué filas ve o toca cada uno es RLS (abajo).
+grant usage on schema public to anon, authenticated;
+grant select on public.projects, public.site_content to anon, authenticated;
+grant insert on public.contact_messages to anon, authenticated;
+grant insert, update, delete on public.projects, public.site_content to authenticated;
+grant select, update, delete on public.contact_messages to authenticated;
+
 -- ══════════════════════════════════════════════════════════════════════════
 --  ROW LEVEL SECURITY
 --  Sin esto, la clave anónima (que va en el bundle del navegador y es
@@ -85,6 +118,7 @@ create trigger projects_touch_updated_at
 -- ══════════════════════════════════════════════════════════════════════════
 
 alter table public.projects         enable row level security;
+alter table public.site_content     enable row level security;
 alter table public.contact_messages enable row level security;
 
 -- Proyectos: el mundo lee lo publicado; sólo tú (autenticado) escribes.
@@ -97,6 +131,20 @@ create policy "projects_public_read"
 drop policy if exists "projects_owner_all" on public.projects;
 create policy "projects_owner_all"
   on public.projects for all
+  to authenticated
+  using (true)
+  with check (true);
+
+-- Contenido: el mundo lo lee (es lo que enseña el sitio); sólo tú lo escribes.
+drop policy if exists "content_public_read" on public.site_content;
+create policy "content_public_read"
+  on public.site_content for select
+  to anon, authenticated
+  using (true);
+
+drop policy if exists "content_owner_write" on public.site_content;
+create policy "content_owner_write"
+  on public.site_content for all
   to authenticated
   using (true)
   with check (true);
@@ -128,7 +176,9 @@ create policy "messages_owner_delete"
   to authenticated
   using (true);
 
--- ─────────────────────── STORAGE: imágenes de proyectos ───────────────────────
+-- ─────────────────── STORAGE: imágenes de proyectos, CV y retrato ───────────────────
+-- Un solo bucket público: capturas en la raíz y los archivos del perfil
+-- (CV en PDF, retrato) bajo site/.
 
 insert into storage.buckets (id, name, public)
 values ('project-media', 'project-media', true)

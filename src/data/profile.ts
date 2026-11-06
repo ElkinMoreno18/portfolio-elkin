@@ -1,39 +1,53 @@
-import type { Bi } from '@/lib/types'
+import type { SiteContent } from '@/content/types'
 
 /**
- * Todo el contenido "fijo" del portafolio vive aquí, en los dos idiomas.
- * Los proyectos NO: esos se gestionan desde /admin (Supabase).
+ * Contenido INICIAL del portafolio, en los dos idiomas.
+ *
+ * Desde /admin se edita todo esto (tabla site_content de Supabase). Mientras
+ * una sección no se haya guardado nunca en el panel, el sitio usa la de aquí;
+ * el panel también parte de estos valores. Los proyectos van aparte (tabla
+ * projects), con sus ejemplos en seedProjects.ts.
  *
  * Regla de redacción aplicada en todo el archivo: primero el resultado,
  * después la tecnología. "Reduje X un 40% con n8n", nunca "usé n8n".
  */
 
-export const profile = {
+const profile: SiteContent['profile'] = {
   name: 'Elkin Moreno',
   fullName: 'Elkin Leonardo Moreno Mojica',
-  initials: 'EM',
-  location: { es: 'Madrid, España', en: 'Madrid, Spain' } satisfies Bi,
+  title: {
+    es: 'Full Stack Developer & Automation Engineer',
+    en: 'Full Stack Developer & Automation Engineer',
+  },
   email: 'elkinmoreno18@gmail.com',
-  phone: '+34 614 560 817',
-  phoneHref: '+34614560817',
-  cvUrl: '/CV_Elkin_Moreno.pdf',
+  location: { es: 'Madrid, España', en: 'Madrid, Spain' },
   available: true,
-
   availability: {
     es: 'Abierto a empleo y proyectos freelance',
     en: 'Open to full-time roles and freelance work',
-  } satisfies Bi,
-
-  socials: [
-    { label: 'LinkedIn', href: 'https://linkedin.com/in/elkin-moreno18', icon: 'linkedin' },
-    { label: 'GitHub', href: 'https://github.com/ElkinMoreno18', icon: 'github' },
-    { label: 'Email', href: 'mailto:elkinmoreno18@gmail.com', icon: 'mail' },
-  ],
-} as const
+  },
+  workMode: {
+    es: 'Permiso de trabajo en España · Presencial, híbrido o remoto',
+    en: 'Authorised to work in Spain · On-site, hybrid or remote',
+  },
+  headline: {
+    es: 'Automatizo el trabajo que tu equipo hace a mano.',
+    en: 'I automate the work your team does by hand.',
+  },
+  sub: {
+    es: 'Soy Elkin Moreno, Full Stack Developer y Automation Engineer en Madrid. Construyo herramientas internas y automatizaciones con n8n, Symfony, React e IA para equipos de operaciones.',
+    en: "I'm Elkin Moreno, a Full Stack Developer and Automation Engineer based in Madrid. I build internal tools and automations with n8n, Symfony, React and AI for operations teams.",
+  },
+  linkedin: 'https://linkedin.com/in/elkin-moreno18',
+  github: 'https://github.com/ElkinMoreno18',
+  cvUrl: '/CV_Elkin_Moreno.pdf',
+  // Vacío: About prueba /portrait.jpg y, si no existe, no enseña foto.
+  portraitUrl: '',
+}
 
 /* ─────────────────────────── Sobre mí ─────────────────────────── */
 
-export const about = {
+const about: SiteContent['about'] = {
   paragraphs: {
     es: [
       'Empecé montando sitios corporativos desde cero (dominio, hosting, servidor y código) y acabé descubriendo que lo que más me engancha está una capa más abajo: los procesos que nadie ve y que hacen que una empresa funcione o se atasque.',
@@ -48,7 +62,7 @@ export const about = {
   },
 
   now: {
-    title: { es: 'En qué ando ahora', en: "What I'm working on" } satisfies Bi,
+    title: { es: 'En qué ando ahora', en: "What I'm working on" },
     items: {
       es: [
         'Automatizando informes de flota y finanzas en logística de última milla.',
@@ -63,45 +77,35 @@ export const about = {
     },
   },
 
+  motto: { es: 'Si se hace dos veces, lo automatizo.', en: 'If it’s done twice, I automate it.' },
+  mottoBody: {
+    es: 'Cada tarea manual recurrente es deuda operativa. Mi trabajo es saldarla antes de que crezca.',
+    en: 'Every recurring manual task is operational debt. My job is to pay it down before it compounds.',
+  },
+
   principles: [
     {
-      title: { es: 'El proceso antes que el framework', en: 'Process before framework' } satisfies Bi,
+      title: { es: 'El proceso antes que el framework', en: 'Process before framework' },
       body: {
         es: 'Un stack bonito sobre un proceso mal entendido sigue siendo un problema, solo que más caro.',
         en: 'A pretty stack on top of a misunderstood process is still a problem, just a more expensive one.',
-      } satisfies Bi,
+      },
     },
     {
-      title: { es: 'Si se hace dos veces, se automatiza', en: 'Done twice? Automate it' } satisfies Bi,
-      body: {
-        es: 'Cada tarea manual recurrente es deuda operativa. Mi trabajo es saldarla antes de que crezca.',
-        en: 'Every recurring manual task is operational debt. My job is to pay it down before it compounds.',
-      } satisfies Bi,
-    },
-    {
-      title: { es: 'Medible o no cuenta', en: "If it can't be measured, it doesn't count" } satisfies Bi,
+      title: { es: 'Medible o no cuenta', en: "If it can't be measured, it doesn't count" },
       body: {
         es: 'Tiempo ahorrado y errores evitados. Si no lo puedo medir, no sé si funcionó.',
         en: "Time saved and errors avoided. If I can't measure it, I can't tell whether it worked.",
-      } satisfies Bi,
+      },
     },
   ],
 }
 
 /* ─────────────────────────── Stack ─────────────────────────── */
 
-export interface StackGroup {
-  key: string
-  icon: string
-  title: Bi
-  note: Bi
-  items: string[]
-}
-
-export const stack: StackGroup[] = [
+const stack: SiteContent['stack'] = [
   {
     key: 'frontend',
-    icon: 'layout-dashboard',
     title: { es: 'Frontend', en: 'Frontend' },
     note: {
       es: 'Interfaces que aguantan datos reales, no solo el happy path.',
@@ -111,7 +115,6 @@ export const stack: StackGroup[] = [
   },
   {
     key: 'backend',
-    icon: 'server',
     title: { es: 'Backend', en: 'Backend' },
     note: {
       es: 'APIs y dominio con Symfony; lo que tiene que durar, se escribe bien.',
@@ -121,7 +124,6 @@ export const stack: StackGroup[] = [
   },
   {
     key: 'automation',
-    icon: 'workflow',
     title: { es: 'Automatización & IA', en: 'Automation & AI' },
     note: {
       es: 'Donde más impacto genero: quitar pasos manuales del día a día.',
@@ -131,7 +133,6 @@ export const stack: StackGroup[] = [
   },
   {
     key: 'messaging',
-    icon: 'radio-tower',
     title: { es: 'Mensajería & Caché', en: 'Messaging & Cache' },
     note: {
       es: 'Sistemas que se hablan sin acoplarse y sin caerse a la vez.',
@@ -141,7 +142,6 @@ export const stack: StackGroup[] = [
   },
   {
     key: 'data',
-    icon: 'database',
     title: { es: 'Bases de datos', en: 'Databases' },
     note: {
       es: 'Modelado pensando en cómo se va a consultar, no solo en cómo se guarda.',
@@ -151,7 +151,6 @@ export const stack: StackGroup[] = [
   },
   {
     key: 'devops',
-    icon: 'container',
     title: { es: 'Herramientas & DevOps', en: 'Tooling & DevOps' },
     note: {
       es: 'Entornos reproducibles y un historial de git que se puede leer.',
@@ -161,7 +160,6 @@ export const stack: StackGroup[] = [
   },
   {
     key: 'cms',
-    icon: 'shopping-bag',
     title: { es: 'CMS & E-commerce', en: 'CMS & E-commerce' },
     note: {
       es: '+20 sitios entregados; sé cuándo un CMS es la respuesta correcta.',
@@ -171,7 +169,6 @@ export const stack: StackGroup[] = [
   },
   {
     key: 'analysis',
-    icon: 'git-branch',
     title: { es: 'Análisis & Documentación', en: 'Analysis & Documentation' },
     note: {
       es: 'El puente entre negocio y técnica: requisitos claros y procesos modelados en UML y BPMN.',
@@ -183,18 +180,7 @@ export const stack: StackGroup[] = [
 
 /* ─────────────────────────── Experiencia ─────────────────────────── */
 
-export interface Job {
-  company: string
-  location: Bi
-  role: Bi
-  period: Bi
-  current?: boolean
-  summary: Bi
-  achievements: { es: string[]; en: string[] }
-  tech: string[]
-}
-
-export const experience: Job[] = [
+const experience: SiteContent['experience'] = [
   {
     company: 'Closer Logistics SL',
     location: { es: 'Madrid, España', en: 'Madrid, Spain' },
@@ -202,8 +188,8 @@ export const experience: Job[] = [
       es: 'Full Stack Developer & Automation Engineer',
       en: 'Full Stack Developer & Automation Engineer',
     },
-    period: { es: 'Jul 2025 – Actualidad', en: 'Jul 2025 – Present' },
-    current: true,
+    start: '2025-07',
+    end: null,
     summary: {
       es: 'Equipo de Data & Automation: digitalizo procesos de logística de última milla y desarrollo sus herramientas internas.',
       en: "Data & Automation team: I digitalise last-mile logistics processes and develop the company's internal tools.",
@@ -230,7 +216,8 @@ export const experience: Job[] = [
     company: 'Si Señor SAS',
     location: { es: 'Bogotá, Colombia', en: 'Bogotá, Colombia' },
     role: { es: 'Full Stack Developer', en: 'Full Stack Developer' },
-    period: { es: 'Nov 2022 – Jul 2025', en: 'Nov 2022 – Jul 2025' },
+    start: '2022-11',
+    end: '2025-07',
     summary: {
       es: 'Soluciones web escalables y responsive para clientes de sectores muy distintos, del CMS al desarrollo a medida con React.',
       en: 'Scalable, responsive web solutions for clients across very different sectors, from CMS builds to custom React development.',
@@ -257,7 +244,8 @@ export const experience: Job[] = [
     company: 'Infinivirt Technologies S.A.S',
     location: { es: 'Medellín, Colombia', en: 'Medellín, Colombia' },
     role: { es: 'Líder de Desarrollo Frontend', en: 'Frontend Development Lead' },
-    period: { es: 'Feb 2022 – Oct 2022', en: 'Feb 2022 – Oct 2022' },
+    start: '2022-02',
+    end: '2022-10',
     summary: {
       es: 'Lideré un equipo de desarrollo entregando soluciones web completas para clientes internos y externos, con enfoque full stack.',
       en: 'Led a development team delivering complete web solutions for internal and external clients, with a full stack focus.',
@@ -282,7 +270,8 @@ export const experience: Job[] = [
     company: 'Carvajal Laboratorios IPS',
     location: { es: 'Tunja, Colombia', en: 'Tunja, Colombia' },
     role: { es: 'Analista Funcional y de Requerimientos', en: 'Functional & Requirements Analyst' },
-    period: { es: 'Abr 2021 – Feb 2022', en: 'Apr 2021 – Feb 2022' },
+    start: '2021-04',
+    end: '2022-02',
     summary: {
       es: 'En el área de I+D+i, traducía las necesidades del negocio en requisitos funcionales y no funcionales, y proponía la solución técnica.',
       en: 'In the R&D unit, I turned business needs into functional and non-functional requirements and proposed the technical solution.',
@@ -307,7 +296,8 @@ export const experience: Job[] = [
     company: 'TVO Seguridad Electrónica',
     location: { es: 'San José, Costa Rica', en: 'San José, Costa Rica' },
     role: { es: 'Administrador y Desarrollador Web', en: 'Web Administrator & Developer' },
-    period: { es: 'Mar 2019 – Jul 2019', en: 'Mar 2019 – Jul 2019' },
+    start: '2019-03',
+    end: '2019-07',
     summary: {
       es: 'Sitio corporativo responsive y todo el entorno web detrás, de dominio a servidor.',
       en: 'Responsive corporate site plus the entire web environment behind it, from domain to server.',
@@ -326,7 +316,8 @@ export const experience: Job[] = [
     company: 'Tecnovision CCTV',
     location: { es: 'San José, Costa Rica', en: 'San José, Costa Rica' },
     role: { es: 'Administrador y Desarrollador Web', en: 'Web Administrator & Developer' },
-    period: { es: 'Ene 2019 – Dic 2019', en: 'Jan 2019 – Dec 2019' },
+    start: '2019-01',
+    end: '2019-12',
     summary: {
       es: 'Presencia digital creada desde cero, incluyendo el análisis de infraestructura.',
       en: 'Digital presence built from zero, infrastructure analysis included.',
@@ -345,37 +336,39 @@ export const experience: Job[] = [
 
 /* ─────────────────────────── Formación ─────────────────────────── */
 
-export const education = [
+const education: SiteContent['education'] = [
   {
     title: {
       es: 'Máster en Data Science y Estrategias para E-commerce',
       en: "Master's in Data Science & E-commerce Strategy",
-    } satisfies Bi,
+    },
     org: 'IUNIT, Centro de Educación Superior de Negocios, Innovación y Tecnología',
-    place: { es: 'Madrid, España', en: 'Madrid, Spain' } satisfies Bi,
+    place: { es: 'Madrid, España', en: 'Madrid, Spain' },
     period: '2025',
   },
   {
     title: {
       es: 'Bootcamp Backend Java y Microservicios',
       en: 'Java Backend & Microservices Bootcamp',
-    } satisfies Bi,
+    },
     org: 'Universidad El Bosque',
-    place: { es: 'Bogotá, Colombia', en: 'Bogotá, Colombia' } satisfies Bi,
+    place: { es: 'Bogotá, Colombia', en: 'Bogotá, Colombia' },
     period: '2023',
   },
   {
     title: {
       es: 'Grado en Ingeniería de Sistemas',
       en: "Bachelor's in Systems Engineering",
-    } satisfies Bi,
+    },
     org: 'Fundación Universitaria Juan de Castellanos',
-    place: { es: 'Tunja, Colombia', en: 'Tunja, Colombia' } satisfies Bi,
+    place: { es: 'Tunja, Colombia', en: 'Tunja, Colombia' },
     period: '2017 – 2021',
   },
 ]
 
-export const languages = [
-  { name: { es: 'Español', en: 'Spanish' } satisfies Bi, level: { es: 'Nativo', en: 'Native' } satisfies Bi },
-  { name: { es: 'Inglés', en: 'English' } satisfies Bi, level: { es: 'Básico', en: 'Basic' } satisfies Bi },
+const languages: SiteContent['languages'] = [
+  { name: { es: 'Español', en: 'Spanish' }, level: { es: 'Nativo', en: 'Native' } },
+  { name: { es: 'Inglés', en: 'English' }, level: { es: 'Básico', en: 'Basic' } },
 ]
+
+export const defaultContent: SiteContent = { profile, about, experience, education, languages, stack }

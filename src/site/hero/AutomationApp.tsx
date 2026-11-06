@@ -72,7 +72,7 @@ export function AutomationApp({ done = false }: { done?: boolean }) {
         <svg className="absolute inset-0" width={LEDGER_X} height={APP_H} viewBox={`0 0 ${LEDGER_X} ${APP_H}`}>
           <defs>
             <pattern id="auto-dots" width="24" height="24" patternUnits="userSpaceOnUse">
-              <circle cx="1" cy="1" r="1" fill="#1d1d21" />
+              <circle cx="1" cy="1" r="1" fill="var(--canvas-dot)" />
             </pattern>
           </defs>
           <rect x="0" y="52" width={LEDGER_X} height={APP_H - 52} fill="url(#auto-dots)" />
@@ -117,9 +117,9 @@ export function AutomationApp({ done = false }: { done?: boolean }) {
           <p className="mt-1 text-[14px] text-text-3">{pick(c.ledgerSub)}</p>
         </div>
 
-        <ol className="border-t border-[#1f1f23]">
+        <ol className="border-t border-[var(--canvas-line)]">
           {tasks.map((t) => (
-            <li key={t.id} data-row={t.id} className="auto-row">
+            <li key={t.id} data-row={t.id} data-state={done ? 'done' : 'manual'} className="auto-row">
               <div className="flex items-center justify-between">
                 <span className="font-mono text-[13px] text-text-3">{t.id}</span>
                 <span className="auto-status">
@@ -156,7 +156,7 @@ export function TaskList({ className, done = false }: { className?: string; done
       <p className="sr-only">{pick(c.srSummary)}</p>
       <ol className="task-list" data-done={done || undefined}>
         {tasks.map((t) => (
-          <li key={t.id} data-mrow={t.id} className="task-card">
+          <li key={t.id} data-mrow={t.id} data-state={done ? 'done' : 'manual'} className="task-card">
             <div className="flex items-center justify-between gap-3">
               <span className="font-mono text-[12px] text-text-3">{t.id}</span>
               <span className="auto-status">

@@ -10,7 +10,7 @@ web
 
 - **Primary: recruiters and hiring managers** in Madrid and remote European teams, deciding within seconds whether Elkin fits a Full Stack or Automation Engineer role. Many are not design-literate. They scan for role, location, availability, stack and proof of impact, then download the CV or get in touch.
 - **Secondary: CTOs and engineering leads** who read deeper: they judge engineering credibility from the projects, the stack and how the site itself is built.
-- **Owner: Elkin**, who adds and edits projects over time through `/admin` without touching code.
+- **Owner: Elkin**, who edits all the content (projects, profile, experience, education, stack, about, CV and photo) through `/admin` without touching code.
 
 ## Product Purpose
 
@@ -28,10 +28,11 @@ He sits where product meets operations. He automates manual work in real operati
 
 ## Capabilities and Constraints
 
-- React 19 + Vite 7 + TypeScript SPA, deployed statically to Vercel. No SSR.
-- Bilingual ES/EN with a visible switch. All strings live in `src/i18n/strings.ts` and `src/data/profile.ts`.
-- Projects are dynamic from Supabase (`projects` table), editable in `/admin`, with fallback seed data in `src/data/seedProjects.ts`. The contact form writes to `contact_messages`.
-- The CV PDF is at `/CV_Elkin_Moreno.pdf`.
+- React 19 + Vite 7 + TypeScript SPA, deployed statically to Cloudflare Workers. No SSR.
+- Bilingual ES/EN with a visible switch. Light and dark themes: follows the system on first visit, toggle in the header; the 3D laptop stays dark in both.
+- Content is dynamic from Supabase and editable in `/admin`: `site_content` (one JSON row per section: profile, about, experience, education, languages, stack) and `projects`. Defaults live in `src/data/profile.ts` and `src/data/seedProjects.ts`; interface copy in `src/site/copy.ts`. The contact form writes to `contact_messages`.
+- The CV PDF defaults to `/CV_Elkin_Moreno.pdf`; a new one can be uploaded from `/admin`.
+- Typography: Hanken Grotesk (text) and JetBrains Mono (data), self-hosted.
 - Must work on phones and respect `prefers-reduced-motion`.
 - **Availability (confirmed 2026-09-28):** he is looking for BOTH full-time employment and freelance projects. The copy must address both audiences (hiring managers and potential clients).
 

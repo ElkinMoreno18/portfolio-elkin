@@ -40,6 +40,8 @@ export const IconClose = (p: P) => <Svg {...p}><path d="M4 4l8 8M12 4l-8 8" /></
 export const IconPause = (p: P) => <Svg {...p}><path d="M5.5 3.5v9M10.5 3.5v9" /></Svg>
 export const IconPlay = (p: P) => <Svg {...p}><path d="M5 3.5l7.5 4.5L5 12.5z" /></Svg>
 export const IconReplay = (p: P) => <Svg {...p}><path d="M3 8a5 5 0 1 0 1.5-3.5M3 2.5v2.5h2.5" /></Svg>
+export const IconSun = (p: P) => <Svg {...p}><circle cx="8" cy="8" r="2.75" /><path d="M8 1.75v1.5M8 12.75v1.5M1.75 8h1.5M12.75 8h1.5M3.58 3.58l1.06 1.06M11.36 11.36l1.06 1.06M3.58 12.42l1.06-1.06M11.36 4.64l1.06-1.06" /></Svg>
+export const IconMoon = (p: P) => <Svg {...p}><path d="M13.25 9.6A5.5 5.5 0 0 1 6.4 2.75a5.5 5.5 0 1 0 6.85 6.85z" /></Svg>
 export const IconGlobe = (p: P) => <Svg {...p}><circle cx="8" cy="8" r="5.5" /><path d="M2.5 8h11M8 2.5c1.8 1.6 2.6 3.4 2.6 5.5S9.8 11.9 8 13.5M8 2.5C6.2 4.1 5.4 5.9 5.4 8s.8 3.9 2.6 5.5" /></Svg>
 
 /* Marcas: relleno, no trazo, siguiendo la forma oficial simplificada. */

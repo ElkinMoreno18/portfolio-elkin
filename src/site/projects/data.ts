@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { fetchPublishedProjects, type ProjectsResult } from '@/lib/projectsApi'
-import { experience } from '@/data/profile'
+import { defaultContent } from '@/data/profile'
 import { CATEGORIES, type Project, type ProjectMetric } from '@/lib/types'
 
 /**
@@ -11,6 +11,11 @@ import { CATEGORIES, type Project, type ProjectMetric } from '@/lib/types'
  */
 let cache: ProjectsResult | null = null
 let inflight: Promise<ProjectsResult> | null = null
+
+/** Pide la lista una vez por visita. main.tsx la lanza al arrancar. */
+export function preloadProjects() {
+  return load()
+}
 
 function load() {
   if (!inflight) {
@@ -26,7 +31,7 @@ function load() {
    lo mismo (comparten una palabra de la etiqueta). Las cifras de los
    proyectos que Elkin publica desde /admin se muestran tal cual: salen de él. */
 
-const CV_LINES = experience.flatMap((job) => [...job.achievements.es, ...job.achievements.en])
+const CV_LINES = defaultContent.experience.flatMap((job) => [...job.achievements.es, ...job.achievements.en])
 const norm = (s: string) => s.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase()
 const stems = (s: string) => (norm(s).match(/\p{L}{5,}/gu) ?? []).map((w) => w.slice(0, 5))
 

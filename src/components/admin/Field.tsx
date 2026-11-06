@@ -234,7 +234,7 @@ export function Toggle({
           aria-hidden
           className={cn(
             'absolute top-[1px] left-[1px] size-4 rounded-full transition-[transform,background-color] duration-200 ease-[var(--ease-out)]',
-            checked ? 'translate-x-4 bg-text' : 'translate-x-0 bg-text-3',
+            checked ? 'translate-x-4 bg-white' : 'translate-x-0 bg-text-3',
           )}
         />
       </button>

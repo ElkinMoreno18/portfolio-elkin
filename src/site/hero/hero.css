@@ -269,7 +269,7 @@
 /* ═════════════════════════════ App de la pantalla ═════════════════════════════ */
 .auto-app {
   position: relative;
-  background: #0c0c0e;
+  background: var(--canvas);
   color: var(--text);
   font-family: var(--font-sans);
   overflow: hidden;
@@ -283,8 +283,8 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-bottom: 1px solid #1f1f23;
-  background: #0e0e10;
+  border-bottom: 1px solid var(--canvas-line);
+  background: var(--canvas-bar);
   font-size: 14px;
   font-weight: 500;
 }
@@ -306,7 +306,7 @@
   font-size: 12px;
   font-weight: 500;
   color: var(--text-3);
-  border: 1px solid #26262b;
+  border: 1px solid var(--line-strong);
   border-radius: 5px;
   padding: 4px 8px;
 }
@@ -327,7 +327,7 @@
 
 .auto-edge {
   fill: none;
-  stroke: #2a2a30;
+  stroke: var(--node-line);
   stroke-width: 1.5;
 }
 .auto-trail {
@@ -341,7 +341,9 @@
   stroke-dasharray: 1 2;
   stroke-dashoffset: 1.01;
 }
-.auto-app[data-done] .auto-trail { stroke-dashoffset: 0; stroke: var(--accent-line); }
+/* Recorrida: el trazo queda al 45 % (lo mismo que --accent-line). Por opacidad
+   y no por color, para que GSAP no fije un color de tema en línea. */
+.auto-app[data-done] .auto-trail { stroke-dashoffset: 0; stroke-opacity: 0.45; }
 
 .auto-packet { opacity: 0; }
 .auto-packet-halo { fill: color-mix(in oklab, var(--accent) 25%, transparent); }
@@ -355,8 +357,8 @@
   gap: 2px;
   padding: 0 14px;
   border-radius: 8px;
-  border: 1px solid #2a2a2f;
-  background: #141417;
+  border: 1px solid var(--node-line);
+  background: var(--surface);
 }
 .auto-node-label { font-size: 14px; font-weight: 600; letter-spacing: -0.01em; color: var(--text); }
 .auto-node-sub { font-size: 12px; line-height: 1.25; color: var(--text-3); }
@@ -365,14 +367,14 @@
   position: absolute;
   top: 52px;
   bottom: 0;
-  border-left: 1px solid #1f1f23;
-  background: #0e0e10;
+  border-left: 1px solid var(--canvas-line);
+  background: var(--canvas-bar);
   display: flex;
   flex-direction: column;
 }
 .auto-row {
   padding: 16px 28px 18px;
-  border-bottom: 1px solid #1f1f23;
+  border-bottom: 1px solid var(--canvas-line);
 }
 .auto-task {
   margin-top: 8px;
@@ -394,7 +396,7 @@
   font-size: 13px;
   font-weight: 500;
   color: var(--text-2);
-  border: 1px solid #26262b;
+  border: 1px solid var(--line-strong);
   border-radius: 5px;
   padding: 3px 7px;
 }
@@ -413,7 +415,7 @@
   text-align: center;
   white-space: nowrap;
 }
-.auto-status-manual { color: var(--text-2); border: 1px solid #2a2a2f; }
+.auto-status-manual { color: var(--text-2); border: 1px solid var(--line-strong); }
 .auto-status-auto { color: var(--on-accent); background: var(--accent); opacity: 0; }
 
 .auto-counter {
@@ -422,8 +424,21 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  border-top: 1px solid #1f1f23;
+  border-top: 1px solid var(--canvas-line);
 }
+
+/* Estado de cada fila del registro y de cada tarjeta del móvil:
+   manual → running (el paquete recorre su ruta) → done. La línea de tiempo
+   sólo cambia data-state; los colores los pone el tema, así el mismo paso
+   vale en claro y en oscuro, y al volver atrás con el scroll se deshace. */
+.auto-row,
+.task-card { transition: background-color 200ms var(--ease-out); }
+.auto-row[data-state="running"] { background-color: var(--surface); }
+.task-card[data-state="running"] { background-color: var(--surface-2); }
+.auto-task { transition: color 150ms var(--ease-out), text-decoration-color 150ms var(--ease-out); }
+.auto-now-chip { transition: color 150ms var(--ease-out), border-color 150ms var(--ease-out); }
+[data-state="done"] .auto-task { color: var(--text-3); text-decoration-color: var(--text-3); }
+[data-state="done"] .auto-now-chip { color: var(--text); border-color: var(--accent-line); }
 
 /* Estado final (movimiento reducido, o render estático). */
 .auto-app[data-done] .auto-status-manual,

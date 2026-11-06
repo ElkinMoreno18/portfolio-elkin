@@ -1,6 +1,7 @@
 import { useRef } from 'react'
 import { useLang } from '@/i18n'
-import { profile } from '@/data/profile'
+import { useContent } from '@/content/store'
+import { cvHref, nowLine } from '@/content/derive'
 import { tasks, automationCopy } from '@/data/automation'
 import { gsap, ScrollTrigger, useGSAP, afterPaint, useReducedMotion } from '../motion'
 import { siteCopy } from '../copy'
@@ -10,15 +11,11 @@ import { Laptop } from './Laptop'
 import { AutomationApp, TaskList } from './AutomationApp'
 import './hero.css'
 
-const C = {
-  accent: '#ff6b2c',
-  accentLine: 'rgba(255, 107, 44, 0.45)',
-  text: '#f1f0ed',
-  text2: '#a6a6ac',
-  text3: '#83838a',
-  nodeLine: '#2a2a2f',
-  rowOn: '#141417',
-}
+/** Colores que GSAP escribe en los nodos de la app del portátil. El portátil
+ *  es siempre .dark (Laptop.tsx): son --accent y --node-line de ese tema. Lo
+ *  que también vive en la página (filas, tarjetas del móvil) cambia por
+ *  data-state y toma el color del tema desde hero.css. */
+const LAPTOP = { accent: '#ff6b2c', nodeLine: '#2a2a2f' }
 
 /** Altura de la cámara (perspective-origin) en anchos de portátil: al cargar y
  *  con la tapa abierta. CAM_END coincide con --cam-y de hero.css. */
@@ -45,6 +42,9 @@ const STEP_GAP = 0.8
  */
 export function Hero() {
   const { pick } = useLang()
+  const content = useContent()
+  const { profile } = content
+  const now = nowLine(content)
   const reduced = useReducedMotion()
   const root = useRef<HTMLElement>(null)
   const stage = useRef<HTMLDivElement>(null)
@@ -203,20 +203,20 @@ export function Hero() {
           data-rise="0"
           className="max-w-[14.5em] text-[clamp(2.5rem,1.1rem+4.6vw,4.75rem)] leading-[1.03] tracking-[-0.04em]"
         >
-          {pick(siteCopy.hero.headline)}
+          {pick(profile.headline)}
         </h1>
 
         <div className="mt-8 grid gap-8 lg:mt-10 lg:grid-cols-12 lg:items-end">
           <div className="lg:col-span-7">
             <p data-rise="1" className="max-w-[36rem] text-[clamp(1rem,0.95rem+0.3vw,1.15rem)] leading-relaxed text-text-2">
-              {pick(siteCopy.hero.sub)}
+              {pick(profile.sub)}
             </p>
             <div data-rise="2" className="mt-7 flex flex-wrap items-center gap-x-6 gap-y-4">
               <ButtonLink to="/#contacto" size="lg">
                 {pick(siteCopy.hero.ctaPrimary)}
                 <IconArrowRight className="transition-transform duration-200 ease-[var(--ease-out)] group-hover:translate-x-0.5" />
               </ButtonLink>
-              <TextLink href={profile.cvUrl} download>
+              <TextLink href={cvHref(profile)} download>
                 <IconDownload />
                 {pick(siteCopy.hero.ctaCv)}
               </TextLink>
@@ -227,19 +227,23 @@ export function Hero() {
             data-rise="3"
             className="flex flex-col gap-2.5 text-[14px] text-text-2 lg:col-span-4 lg:col-start-9 lg:border-l lg:border-line lg:pl-6"
           >
-            <li className="flex items-center gap-2.5 text-text">
-              <span aria-hidden="true" className="size-1.5 rounded-full bg-accent" />
-              {pick(siteCopy.hero.availability)}
-            </li>
+            {profile.available && (
+              <li className="flex items-center gap-2.5 text-text">
+                <span aria-hidden="true" className="size-1.5 rounded-full bg-accent" />
+                {pick(profile.availability)}
+              </li>
+            )}
             <li className="flex items-center gap-2.5">
               <IconPin className="text-text-3" />
-              {pick(siteCopy.hero.location)}
+              {pick(profile.location)}
             </li>
-            <li className="flex items-center gap-2.5">
-              <span aria-hidden="true" className="w-4" />
-              {pick(siteCopy.hero.now)}
-            </li>
-            {pick(siteCopy.hero.workMode).split(' · ').map((part) => (
+            {now && (
+              <li className="flex items-center gap-2.5">
+                <span aria-hidden="true" className="w-4" />
+                {pick(now)}
+              </li>
+            )}
+            {pick(profile.workMode).split(' · ').filter((part) => part.trim()).map((part) => (
               <li key={part} className="flex items-center gap-2.5">
                 <span aria-hidden="true" className="w-4 shrink-0" />
                 {part}
@@ -295,8 +299,11 @@ function runStep(
   const nodeEls = t.route.map((id) => q(`[data-node="${id}"]`)[0])
   const trails = legs.map((l) => q(`[data-trail="${l.from}-${l.to}"]`)[0])
 
-  tl.to(rows, { backgroundColor: C.rowOn, duration: 0.08 }, t0)
-  tl.to(nodeEls[0], { borderColor: C.accent, duration: 0.05 }, t0)
+  // Al menos un instante después de 0: un set() en el mismo arranque de la
+  // línea de tiempo se aplicaría al montarla, con la tarjeta aún sin tocar.
+  const on = Math.max(t0, 0.01)
+  tl.set(rows, { attr: { 'data-state': 'running' }, immediateRender: false }, on)
+  tl.to(nodeEls[0], { borderColor: LAPTOP.accent, duration: 0.05 }, t0)
   tl.set(packet, { opacity: 1 }, t0)
 
   legs.forEach((_, j) => {
@@ -317,18 +324,17 @@ function runStep(
       },
       at,
     )
-    tl.to(nodeEls[j + 1], { borderColor: C.accent, duration: 0.05 }, at + seg - 0.04)
+    tl.to(nodeEls[j + 1], { borderColor: LAPTOP.accent, duration: 0.05 }, at + seg - 0.04)
   })
 
   const te = t0 + 0.74
   const q2 = (sel: string) => rows.flatMap((r) => Array.from(r.querySelectorAll(sel)))
   tl.set(packet, { opacity: 0 }, te)
+  tl.set(rows, { attr: { 'data-state': 'done' }, immediateRender: false }, te)
   tl.to(q2('[data-st-manual]'), { opacity: 0, y: -5, duration: 0.1 }, te)
   tl.fromTo(q2('[data-st-auto]'), { opacity: 0, y: 5 }, { opacity: 1, y: 0, duration: 0.1, immediateRender: false }, te)
-  tl.to(q2('[data-task]'), { color: C.text3, textDecorationColor: C.text3, duration: 0.14 }, te)
-  tl.to(q2('.auto-now-chip'), { color: C.text, borderColor: C.accentLine, duration: 0.14 }, te)
-  tl.to(trails, { stroke: C.accentLine, duration: 0.2 }, te + 0.08)
-  tl.to(nodeEls, { borderColor: C.nodeLine, duration: 0.2 }, te + 0.08)
-  tl.to(rows, { backgroundColor: 'rgba(20,20,23,0)', duration: 0.2 }, te + 0.08)
+  // La estela queda al 45 % (= --accent-line), por opacidad: el color lo sigue poniendo el CSS.
+  tl.to(trails, { strokeOpacity: 0.45, duration: 0.2 }, te + 0.08)
+  tl.to(nodeEls, { borderColor: LAPTOP.nodeLine, duration: 0.2 }, te + 0.08)
   return te
 }

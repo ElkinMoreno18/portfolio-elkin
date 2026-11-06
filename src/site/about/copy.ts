@@ -1,12 +1,10 @@
 /**
- * Textos de interfaz de "Sobre mí". Los párrafos, principios y la lista de
- * "ahora" salen de src/data/profile.ts (about).
+ * Textos de interfaz de "Sobre mí". La historia, la frase, los principios y
+ * la lista de "ahora" son contenido editable (useContent().about).
  */
 export const aboutCopy = {
   title: { es: 'Sobre mí', en: 'About me' },
-  /** Su principio, con sus palabras. Aprobado por Elkin para destacarlo. */
-  motto: { es: 'Si se hace dos veces, lo automatizo.', en: 'If it’s done twice, I automate it.' },
-  portraitAlt: { es: 'Retrato de Elkin Moreno', en: 'Portrait of Elkin Moreno' },
+  portraitAlt: { es: 'Retrato de', en: 'Portrait of' },
   principlesLabel: { es: 'Principios de trabajo', en: 'Working principles' },
 } as const
 

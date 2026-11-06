@@ -77,7 +77,8 @@ export default function NotFoundPage() {
           .set(q('[data-nf-packet="b"]'), { opacity: 1 }, 1.02)
           .fromTo(q('[data-nf-packet="b"]'), { x: 0 }, { x: 20, duration: 0.4, ease: EASE_OUT }, 1.02)
           .to(q('[data-nf-packet="b"]'), { opacity: 0, duration: 0.25, ease: EASE_OUT }, 1.3)
-          .to(router, { borderColor: line, duration: 0.5, ease: EASE_OUT }, 1.25)
+          // Al terminar, el borde vuelve al CSS: si luego cambia el tema, lo sigue.
+          .to(router, { borderColor: line, duration: 0.5, ease: EASE_OUT, clearProps: 'borderColor' }, 1.25)
           .from(q('[data-nf-port]'), { scale: 0.6, opacity: 0, duration: 0.3, ease: EASE_OUT }, 1.3)
       })
     },

@@ -1,6 +1,7 @@
 import { useRef } from 'react'
 import { useLang } from '@/i18n'
-import { education, languages, profile } from '@/data/profile'
+import { useContent } from '@/content/store'
+import { cvHref } from '@/content/derive'
 import { gsap, useGSAP, EASE_OUT, alreadyPast, revealOnFocus, whenIdle } from '../motion'
 import { TextLink } from '../ui'
 import { IconDownload } from '../icons'
@@ -22,6 +23,7 @@ function range(period: string) {
  */
 export function Background() {
   const { lang, pick } = useLang()
+  const { education, languages, profile } = useContent()
   const root = useRef<HTMLDivElement>(null)
 
   useGSAP(
@@ -62,8 +64,8 @@ export function Background() {
           {pick(c.education)}
         </h3>
         <ul className="mt-5">
-          {education.map((e) => (
-            <li key={e.title.en} className="exp-row grid gap-x-6 gap-y-1 py-4 sm:grid-cols-[8.5rem_minmax(0,1fr)]">
+          {education.map((e, i) => (
+            <li key={i} className="exp-row grid gap-x-6 gap-y-1 py-4 sm:grid-cols-[8.5rem_minmax(0,1fr)]">
               <span className="exp-rule" data-rule aria-hidden="true" />
               <p data-bg-text className="pt-0.5 font-mono text-[12px] leading-5 text-text-3 tnum">
                 {range(localMonths(e.period, lang))}
@@ -85,8 +87,8 @@ export function Background() {
           {pick(c.languages)}
         </h3>
         <ul className="mt-5">
-          {languages.map((l) => (
-            <li key={l.name.en} className="exp-row flex items-baseline justify-between gap-6 py-4">
+          {languages.map((l, i) => (
+            <li key={i} className="exp-row flex items-baseline justify-between gap-6 py-4">
               <span className="exp-rule" data-rule aria-hidden="true" />
               <span data-bg-text className="text-[16px] font-medium text-text">
                 {pick(l.name)}
@@ -99,7 +101,7 @@ export function Background() {
         </ul>
 
         <div data-bg-text className="mt-8 flex items-center gap-2">
-          <TextLink href={profile.cvUrl} download type="application/pdf">
+          <TextLink href={cvHref(profile)} download type="application/pdf">
             <IconDownload />
             {pick(c.cv)}
           </TextLink>

@@ -6,6 +6,7 @@ import {
   ArrowUpRight,
   Check,
   CircleAlert,
+  Download,
   ImageOff,
   Inbox,
   LoaderCircle,
@@ -22,11 +23,19 @@ import {
 import { useLang } from '@/i18n'
 import { useAuth } from '@/hooks/useAuth'
 import { deleteProject, fetchAllProjects, fetchMessages, setMessageRead } from '@/lib/projectsApi'
+import { fetchAdminContent, importSeedProjects, missingSeeds, type AdminContent } from '@/lib/contentApi'
 import { CATEGORIES, type ContactMessage, type Project } from '@/lib/types'
+import type { SectionKey, SiteContent } from '@/content/types'
 import { cn, formatDate } from '@/lib/utils'
 import { Button, ButtonLink, Container } from '@/site/ui'
 import { Mark } from '@/site/Nav'
+import { ThemeToggle } from '@/site/ThemeToggle'
 import { ProjectForm } from './ProjectForm'
+import { ProfileEditor } from './content/ProfileEditor'
+import { ExperienceEditor } from './content/ExperienceEditor'
+import { EducationEditor } from './content/EducationEditor'
+import { StackEditor } from './content/StackEditor'
+import { AboutEditor } from './content/AboutEditor'
 
 type Bi = { es: string; en: string }
 
@@ -38,7 +47,16 @@ const copy = {
   lang: { es: 'Idioma del panel', en: 'Dashboard language' },
   sections: { es: 'Secciones del panel', en: 'Dashboard sections' },
   projects: { es: 'Proyectos', en: 'Projects' },
+  profile: { es: 'Perfil', en: 'Profile' },
+  experience: { es: 'Experiencia', en: 'Experience' },
+  education: { es: 'Formación', en: 'Education' },
+  stack: { es: 'Stack', en: 'Stack' },
+  about: { es: 'Sobre mí', en: 'About' },
   messages: { es: 'Mensajes', en: 'Messages' },
+  leaveDirty: {
+    es: 'Tienes cambios sin guardar en esta sección. ¿Salir sin guardarlos?',
+    en: 'You have unsaved changes in this section. Leave without saving them?',
+  },
   projectsLead: {
     es: 'Lo que está publicado aquí es lo que enseña el portafolio. Los borradores no salen en el sitio.',
     en: 'What is published here is what the portfolio shows. Drafts stay off the site.',
@@ -75,11 +93,16 @@ const copy = {
   retry: { es: 'Reintentar', en: 'Retry' },
   refreshing: { es: 'Actualizando…', en: 'Refreshing…' },
   loading: { es: 'Cargando…', en: 'Loading…' },
-  noProjects: { es: 'Aún no hay proyectos.', en: 'No projects yet.' },
+  noProjects: { es: 'Aún no hay proyectos guardados aquí.', en: 'No projects saved here yet.' },
   noProjectsLead: {
-    es: 'Crea el primero. Aparecerá en el portafolio en cuanto esté publicado.',
-    en: 'Create the first one. It shows up on the portfolio once it is published.',
+    es: 'Mientras tanto, el portafolio enseña {n} proyectos de ejemplo redactados desde tu CV. Impórtalos para editarlos aquí (textos, capturas, orden) o crea uno desde cero.',
+    en: 'Meanwhile, the portfolio shows {n} sample projects written from your CV. Import them to edit them here (texts, screenshots, order) or create one from scratch.',
   },
+  importSeeds: { es: 'Importar los {n} proyectos', en: 'Import the {n} projects' },
+  importMissing: { es: 'Importar los {n} de ejemplo que faltan', en: 'Import the {n} missing samples' },
+  importing: { es: 'Importando…', en: 'Importing…' },
+  imported: { es: '{n} proyectos importados', en: '{n} projects imported' },
+  importFailed: { es: 'No se pudieron importar', en: 'Could not import' },
   noMessages: { es: 'No hay mensajes todavía.', en: 'No messages yet.' },
   noMessagesLead: {
     es: 'Cuando alguien escriba desde el formulario de contacto, lo verás aquí.',
@@ -104,6 +127,13 @@ const count = {
 } satisfies Record<string, [Bi, Bi]>
 
 const ic = { size: 16, strokeWidth: 1.5, 'aria-hidden': true } as const
+
+/** La más reciente de dos fechas ISO (o la que exista). */
+function latest(a?: string, b?: string) {
+  if (!a) return b
+  if (!b) return a
+  return a > b ? a : b
+}
 
 function errorText(err: unknown) {
   return err instanceof Error ? err.message : String(err)
@@ -176,6 +206,7 @@ export function AdminTopBar({ actions, children }: { actions?: ReactNode; childr
         <div className="flex shrink-0 items-center gap-1 sm:gap-2">
           {actions}
           <AdminLangSwitch />
+          <ThemeToggle />
         </div>
       </Container>
       {children}
@@ -344,7 +375,11 @@ function PublishState({ published }: { published: boolean }) {
 
 /* ───────────────────────── Panel ───────────────────────── */
 
-type Tab = 'projects' | 'messages'
+type Tab = 'projects' | SectionTab | 'messages'
+/** Pestañas de contenido: education agrupa formación e idiomas. */
+type SectionTab = 'profile' | 'experience' | 'education' | 'stack' | 'about'
+const ORDER: Tab[] = ['projects', 'profile', 'experience', 'education', 'stack', 'about', 'messages']
+const isSectionTab = (t: Tab): t is SectionTab => t !== 'projects' && t !== 'messages'
 
 export function Dashboard() {
   const { lang, pick, field } = useLang()
@@ -359,16 +394,21 @@ export function Dashboard() {
   const [formOpen, setFormOpen] = useState(false)
   const [notice, setNotice] = useState<Notice>(null)
   const [selectedId, setSelectedId] = useState<string | null>(null)
+  const [content, setContent] = useState<AdminContent | null>(null)
+  const [importing, setImporting] = useState(false)
   const trigger = useRef<HTMLElement | null>(null)
-  const tabRefs = useRef<Record<Tab, HTMLButtonElement | null>>({ projects: null, messages: null })
+  const tabRefs = useRef<Partial<Record<Tab, HTMLButtonElement | null>>>({})
+  /** El editor abierto tiene cambios sin guardar. */
+  const dirty = useRef(false)
   const detailHeading = useRef<HTMLHeadingElement>(null)
 
   const reload = useCallback(async () => {
     setRefreshing(true)
     try {
-      const [p, m] = await Promise.all([fetchAllProjects(), fetchMessages()])
+      const [p, m, c] = await Promise.all([fetchAllProjects(), fetchMessages(), fetchAdminContent()])
       setProjects(p)
       setMessages(m)
+      setContent(c)
       setLoadError(null)
       setStatus('ready')
     } catch (err) {
@@ -417,6 +457,41 @@ export function Dashboard() {
     }
   }
 
+  async function importSeeds() {
+    setImporting(true)
+    setNotice(null)
+    try {
+      const n = await importSeedProjects(projects.map((p) => p.slug))
+      setNotice({ tone: 'ok', text: pick(copy.imported).replace('{n}', String(n)) })
+      await reload()
+    } catch (err) {
+      setNotice({ tone: 'error', text: `${pick(copy.importFailed)}: ${errorText(err)}` })
+    } finally {
+      setImporting(false)
+    }
+  }
+
+  /** Cambiar de pestaña: si el editor abierto tiene cambios, se pregunta antes. */
+  function selectTab(next: Tab) {
+    if (next === tab) return true
+    if (dirty.current && !window.confirm(pick(copy.leaveDirty))) return false
+    dirty.current = false
+    setTab(next)
+    return true
+  }
+
+  /** Lo guardado en un editor pasa al estado del panel (por si se vuelve a la pestaña). */
+  function onSectionSaved<K extends SectionKey>(entries: Partial<SiteContent>, keys: K[], at: string) {
+    setContent((c) =>
+      c
+        ? {
+            content: { ...c.content, ...entries },
+            savedAt: { ...c.savedAt, ...Object.fromEntries(keys.map((k) => [k, at])) },
+          }
+        : c,
+    )
+  }
+
   async function toggleRead(message: ContactMessage) {
     try {
       await setMessageRead(message.id, !message.read)
@@ -450,56 +525,130 @@ export function Dashboard() {
   const refreshNotice: Notice =
     notice ?? (status === 'ready' && loadError ? { tone: 'error', text: `${pick(copy.refreshFailed)}: ${loadError}` } : null)
 
-  const tabs: { id: Tab; label: string; badge: ReactNode }[] = [
-    {
-      id: 'projects',
-      label: pick(copy.projects),
-      badge: status === 'ready' && <TabCount n={projects.length} />,
-    },
-    {
-      id: 'messages',
-      label: pick(copy.messages),
-      badge:
-        status === 'ready' &&
-        (unread > 0 ? (
-          <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-accent px-1.5 font-mono text-[12px] leading-none text-on-accent tnum">
-            {unread}
-            <span className="sr-only"> {pick(copy.unreadSr)}</span>
-          </span>
-        ) : (
-          <TabCount n={messages.length} />
-        )),
-    },
-  ]
+  const tabs: { id: Tab; label: string; badge: ReactNode }[] = ORDER.map((id) => ({
+    id,
+    label: pick(copy[id]),
+    badge:
+      status !== 'ready'
+        ? null
+        : id === 'projects'
+          ? <TabCount n={projects.length} />
+          : id === 'messages'
+            ? unread > 0
+              ? (
+                  <span className="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-accent px-1.5 font-mono text-[12px] leading-none text-on-accent tnum">
+                    {unread}
+                    <span className="sr-only"> {pick(copy.unreadSr)}</span>
+                  </span>
+                )
+              : <TabCount n={messages.length} />
+            : null,
+  }))
+  const seedsMissing = status === 'ready' ? missingSeeds(projects.map((p) => p.slug)).length : 0
 
   function onTabKey(e: KeyboardEvent<HTMLButtonElement>) {
     if (e.key !== 'ArrowRight' && e.key !== 'ArrowLeft' && e.key !== 'Home' && e.key !== 'End') return
     e.preventDefault()
-    const order: Tab[] = ['projects', 'messages']
-    const i = order.indexOf(tab)
+    const i = ORDER.indexOf(tab)
     const next =
-      e.key === 'Home' ? order[0] : e.key === 'End' ? order[order.length - 1] : order[(i + (e.key === 'ArrowRight' ? 1 : order.length - 1)) % order.length]
-    setTab(next)
-    tabRefs.current[next]?.focus()
+      e.key === 'Home' ? ORDER[0] : e.key === 'End' ? ORDER[ORDER.length - 1] : ORDER[(i + (e.key === 'ArrowRight' ? 1 : ORDER.length - 1)) % ORDER.length]
+    if (selectTab(next)) tabRefs.current[next]?.focus()
   }
 
   const body = (() => {
-    if (status === 'loading') return <SkeletonRows />
-    if (status === 'error') return <LoadError message={loadError} onRetry={() => void reload()} />
+    if (status === 'loading')
+      return (
+        <div className={isSectionTab(tab) ? 'pt-10' : undefined}>
+          <SkeletonRows />
+        </div>
+      )
+    if (status === 'error')
+      return (
+        <div className={isSectionTab(tab) ? 'pt-10' : undefined}>
+          <LoadError message={loadError} onRetry={() => void reload()} />
+        </div>
+      )
+
+    /* ── Contenido del sitio ── */
+    if (isSectionTab(tab)) {
+      if (!content) return null
+      const { content: c, savedAt } = content
+      const onDirtyChange = (d: boolean) => {
+        dirty.current = d
+      }
+      switch (tab) {
+        case 'profile':
+          return (
+            <ProfileEditor
+              key="profile"
+              initial={c.profile}
+              savedAt={savedAt.profile}
+              onSaved={(data, at) => onSectionSaved({ profile: data }, ['profile'], at)}
+              onDirtyChange={onDirtyChange}
+            />
+          )
+        case 'experience':
+          return (
+            <ExperienceEditor
+              key="experience"
+              initial={c.experience}
+              savedAt={savedAt.experience}
+              onSaved={(data, at) => onSectionSaved({ experience: data }, ['experience'], at)}
+              onDirtyChange={onDirtyChange}
+            />
+          )
+        case 'education':
+          return (
+            <EducationEditor
+              key="education"
+              initial={{ education: c.education, languages: c.languages }}
+              savedAt={latest(savedAt.education, savedAt.languages)}
+              onSaved={(data, at) => onSectionSaved(data, ['education', 'languages'], at)}
+              onDirtyChange={onDirtyChange}
+            />
+          )
+        case 'stack':
+          return (
+            <StackEditor
+              key="stack"
+              initial={c.stack}
+              savedAt={savedAt.stack}
+              onSaved={(data, at) => onSectionSaved({ stack: data }, ['stack'], at)}
+              onDirtyChange={onDirtyChange}
+            />
+          )
+        case 'about':
+          return (
+            <AboutEditor
+              key="about"
+              initial={c.about}
+              savedAt={savedAt.about}
+              onSaved={(data, at) => onSectionSaved({ about: data }, ['about'], at)}
+              onDirtyChange={onDirtyChange}
+            />
+          )
+      }
+    }
 
     /* ── Proyectos ── */
     if (tab === 'projects') {
       if (projects.length === 0)
         return (
           <EmptyState
-            icon={<Plus {...ic} />}
+            icon={<Download {...ic} />}
             title={pick(copy.noProjects)}
-            lead={pick(copy.noProjectsLead)}
+            lead={pick(copy.noProjectsLead).replace('{n}', String(seedsMissing))}
             action={
-              <Button onClick={() => openForm(null)}>
-                <Plus {...ic} />
-                {pick(copy.newProject)}
-              </Button>
+              <div className="flex flex-wrap items-center justify-center gap-2">
+                <Button onClick={() => void importSeeds()} disabled={importing} aria-busy={importing}>
+                  {importing ? <LoaderCircle {...ic} className="animate-spin" /> : <Download {...ic} />}
+                  {importing ? pick(copy.importing) : pick(copy.importSeeds).replace('{n}', String(seedsMissing))}
+                </Button>
+                <Button variant="secondary" onClick={() => openForm(null)}>
+                  <Plus {...ic} />
+                  {pick(copy.newProject)}
+                </Button>
+              </div>
             }
           />
         )
@@ -732,7 +881,12 @@ export function Dashboard() {
           }
         >
           <Container size="base">
-            <div role="tablist" aria-label={pick(copy.sections)} className="-mb-px flex gap-6">
+            {/* En el móvil la fila de pestañas se desplaza en horizontal. */}
+            <div
+              role="tablist"
+              aria-label={pick(copy.sections)}
+              className="-mx-5 -mb-px flex gap-5 overflow-x-auto px-5 [scrollbar-width:none] sm:-mx-8 sm:px-8 lg:-mx-10 lg:gap-6 lg:px-10 [&::-webkit-scrollbar]:hidden"
+            >
               {tabs.map(({ id, label, badge }) => {
                 const active = tab === id
                 return (
@@ -747,10 +901,10 @@ export function Dashboard() {
                     aria-selected={active}
                     aria-controls={`admin-panel-${id}`}
                     tabIndex={active ? 0 : -1}
-                    onClick={() => setTab(id)}
+                    onClick={() => selectTab(id)}
                     onKeyDown={onTabKey}
                     className={cn(
-                      'flex h-11 items-center gap-2 border-b-2 text-[14px] transition-colors duration-150',
+                      'flex h-11 shrink-0 items-center gap-2 border-b-2 text-[14px] whitespace-nowrap transition-colors duration-150',
                       active ? 'border-text text-text' : 'border-transparent text-text-2 hover:text-text',
                     )}
                   >
@@ -779,22 +933,35 @@ export function Dashboard() {
                   )
                 }
               />
-            ) : (
+            ) : tab === 'messages' ? (
               <PageHead title={pick(copy.messages)} lead={pick(copy.messagesLead)} />
-            )}
+            ) : null}
 
-            <div className="mb-3 flex min-h-6 flex-wrap items-center justify-between gap-x-6 gap-y-2">
+            <div className={cn('mb-3 flex min-h-6 flex-wrap items-center justify-between gap-x-6 gap-y-2', isSectionTab(tab) && 'hidden')}>
               {status === 'ready' &&
                 (tab === 'projects' ? (
                   projects.length > 0 && (
-                  <Summary
-                    items={[
-                      { n: projects.length, forms: count.project },
-                      { n: published, forms: count.published },
-                      { n: projects.length - published, forms: count.draft },
-                      { n: featured, forms: count.featured },
-                    ]}
-                  />
+                    <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+                      <Summary
+                        items={[
+                          { n: projects.length, forms: count.project },
+                          { n: published, forms: count.published },
+                          { n: projects.length - published, forms: count.draft },
+                          { n: featured, forms: count.featured },
+                        ]}
+                      />
+                      {seedsMissing > 0 && (
+                        <button
+                          type="button"
+                          onClick={() => void importSeeds()}
+                          disabled={importing}
+                          className="inline-flex items-center gap-1.5 rounded-[4px] text-[13px] text-text-2 underline decoration-line-strong underline-offset-[3px] transition-colors hover:text-text hover:decoration-text-3 disabled:opacity-50"
+                        >
+                          {importing ? <LoaderCircle {...ic} size={13} className="animate-spin" /> : <Download {...ic} size={13} />}
+                          {importing ? pick(copy.importing) : pick(copy.importMissing).replace('{n}', String(seedsMissing))}
+                        </button>
+                      )}
+                    </div>
                   )
                 ) : (
                   messages.length > 0 && (

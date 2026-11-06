@@ -49,6 +49,9 @@ const copy = {
   slug: { es: 'Slug', en: 'Slug' },
   category: { es: 'Categoría', en: 'Category' },
   year: { es: 'Año', en: 'Year' },
+  yearStart: { es: 'Desde (opcional)', en: 'From (optional)' },
+  ongoing: { es: 'En curso', en: 'Ongoing' },
+  ongoingDesc: { es: 'Se muestra «2025 – hoy».', en: 'Shown as "2025 – now".' },
   order: { es: 'Orden', en: 'Order' },
   tech: { es: 'Tecnologías', en: 'Technologies' },
   cover: { es: 'Portada', en: 'Cover' },
@@ -61,6 +64,10 @@ const copy = {
     description: { es: 'El problema, qué hiciste y qué cambió. De 2 a 4 párrafos.', en: 'The problem, what you did and what changed. 2 to 4 paragraphs.' },
     slug: { es: 'Se genera desde el título mientras no lo edites a mano.', en: 'Generated from the title until you edit it by hand.' },
     order: { es: 'Menor número, antes.', en: 'Lower comes first.' },
+    yearStart: {
+      es: 'Si el trabajo abarcó varios años: «2022 – 2025». Vacío, sólo el año.',
+      en: 'If the work spanned several years: "2022 – 2025". Empty, just the year.',
+    },
     tech: { es: 'Enter o coma para añadir. Retroceso borra la última.', en: 'Enter or comma to add. Backspace removes the last one.' },
     metrics: {
       es: 'Sólo cifras reales que puedas defender. Un valor corto y una etiqueta por idioma.',
@@ -116,7 +123,7 @@ export function ProjectForm({
   const [draft, setDraft] = useState<ProjectDraft>(() => {
     if (!project) return emptyDraft()
     const { id: _id, created_at: _c, updated_at: _u, ...rest } = project
-    return rest
+    return { ...rest, year_start: rest.year_start ?? null, ongoing: rest.ongoing ?? false }
   })
   const [initial] = useState(() => JSON.stringify(draft))
   const [saving, setSaving] = useState(false)
@@ -270,7 +277,7 @@ export function ProjectForm({
 
   return (
     <div ref={root} className="fixed inset-0 z-50 flex justify-end overflow-hidden">
-      <div ref={scrim} className="absolute inset-0 bg-black/60" onClick={requestClose} aria-hidden />
+      <div ref={scrim} className="absolute inset-0 bg-[var(--scrim)]" onClick={requestClose} aria-hidden />
 
       <div
         ref={panel}
@@ -411,6 +418,29 @@ export function ProjectForm({
                     className={cn(adminInput, noSpin, 'font-mono tnum')}
                   />
                 </AdminField>
+              </div>
+
+              <div className="grid gap-x-4 gap-y-5 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.6fr)] sm:items-start">
+                <AdminField label={pick(copy.yearStart)} htmlFor={`${uid}-year-start`} hint={pick(copy.hint.yearStart)}>
+                  <input
+                    id={`${uid}-year-start`}
+                    type="number"
+                    inputMode="numeric"
+                    value={draft.year_start ?? ''}
+                    onChange={(e) => set('year_start', e.target.value ? Number(e.target.value) : null)}
+                    placeholder="2022"
+                    aria-describedby={`${uid}-year-start-hint`}
+                    className={cn(adminInput, noSpin, 'font-mono tnum')}
+                  />
+                </AdminField>
+                <div className="sm:pt-6">
+                  <Toggle
+                    checked={Boolean(draft.ongoing)}
+                    onChange={(v) => set('ongoing', v)}
+                    label={pick(copy.ongoing)}
+                    description={pick(copy.ongoingDesc)}
+                  />
+                </div>
               </div>
 
               <AdminField label={pick(copy.tech)} htmlFor={`${uid}-tech`} hint={pick(copy.hint.tech)}>

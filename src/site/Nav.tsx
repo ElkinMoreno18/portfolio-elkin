@@ -1,12 +1,14 @@
 import { useEffect, useRef, useState, type ComponentPropsWithoutRef } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useLang } from '@/i18n'
-import { profile } from '@/data/profile'
+import { useContent } from '@/content/store'
+import { cvHref } from '@/content/derive'
 import { cn } from '@/lib/utils'
 import { siteCopy } from './copy'
 import { Container, ButtonLink } from './ui'
 import { IconClose, IconDownload, IconMenu } from './icons'
 import { focusHeading } from './focus'
+import { ThemeToggle } from './ThemeToggle'
 
 const LINKS = [
   { id: 'proyectos', key: 'work' },
@@ -76,6 +78,7 @@ function SectionLink({ id, ...rest }: { id: string } & Omit<ComponentPropsWithou
 
 export function Nav() {
   const { pick } = useLang()
+  const { profile } = useContent()
   const { pathname } = useLocation()
   const isHome = pathname === '/'
   const [scrolled, setScrolled] = useState(false)
@@ -220,7 +223,7 @@ export function Nav() {
             className="flex items-center gap-2.5 text-[15px] font-semibold tracking-[-0.01em]"
           >
             <Mark />
-            <span>Elkin Moreno</span>
+            <span>{profile.name}</span>
           </Link>
 
           <ul className="hidden items-center gap-1 lg:flex">
@@ -244,6 +247,7 @@ export function Nav() {
             {/* max-sm:hidden y no "hidden sm:flex": cn() no fusiona clases, y la
                 base "flex" podía ganar a "hidden". La variante siempre va después. */}
             <LangSwitch className="max-sm:hidden" />
+            <ThemeToggle />
             {/* En el móvil la portada ya enseña "Escríbeme" justo debajo: dos
                 botones iguales en la primera pantalla sobran. Va dentro del menú. */}
             <ButtonLink to="/#contacto" size="sm" onClick={pickSection('contacto')} className="max-sm:hidden">
@@ -288,7 +292,7 @@ export function Nav() {
                 <ButtonLink to="/#contacto" onClick={pickSection('contacto')} className="sm:hidden">
                   {pick(siteCopy.nav.cta)}
                 </ButtonLink>
-                <ButtonLink href={profile.cvUrl} download variant="secondary" onClick={() => setOpen(false)}>
+                <ButtonLink href={cvHref(profile)} download variant="secondary" onClick={() => setOpen(false)}>
                   <IconDownload />
                   {pick(siteCopy.hero.ctaCv)}
                 </ButtonLink>
